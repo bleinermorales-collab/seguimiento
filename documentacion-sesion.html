@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentación — Sistema de Seguimiento de Virtualización</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; background: #fff; font-size: 13px; line-height: 1.6; }
+
+  .cover { background: linear-gradient(135deg, #1300fd 0%, #6c00e0 100%); color: white; padding: 60px 50px; min-height: 260px; display: flex; flex-direction: column; justify-content: center; }
+  .cover-logo { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; margin-bottom: 16px; }
+  .cover h1 { font-size: 32px; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
+  .cover p { font-size: 14px; opacity: 0.85; }
+  .cover-meta { margin-top: 30px; font-size: 12px; opacity: 0.7; }
+
+  .content { padding: 40px 50px; max-width: 900px; }
+
+  h2 { font-size: 18px; font-weight: 700; color: #1300fd; border-bottom: 2px solid #1300fd; padding-bottom: 6px; margin: 36px 0 14px; }
+  h3 { font-size: 14px; font-weight: 700; color: #2d2d6e; margin: 20px 0 8px; }
+  h4 { font-size: 13px; font-weight: 600; color: #444; margin: 14px 0 6px; }
+
+  p { margin-bottom: 8px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+  th { background: #1300fd; color: white; padding: 8px 10px; text-align: left; font-weight: 600; }
+  td { padding: 7px 10px; border-bottom: 1px solid #e8eaf0; }
+  tr:nth-child(even) td { background: #f8f9ff; }
+
+  code { background: #f0f2f5; border: 1px solid #dde; padding: 1px 5px; border-radius: 3px; font-family: 'Consolas', monospace; font-size: 11px; color: #c0392b; }
+  pre { background: #1a1a2e; color: #e8e8f0; padding: 14px 16px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 11px; margin: 10px 0; overflow-x: auto; line-height: 1.7; }
+  pre .comment { color: #7f8c8d; }
+  pre .key { color: #74b9ff; }
+  pre .val { color: #55efc4; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-orange { background: #fed7aa; color: #9a3412; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-violet { background: #ede9fe; color: #6d28d9; }
+
+  .box { background: #f8f9ff; border-left: 4px solid #1300fd; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+  .box-warn { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+  .box-green { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  .flow-step { background: #1300fd; color: white; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+  .flow-arrow { color: #1300fd; font-size: 16px; font-weight: bold; }
+  .flow-col { background: #f0f2f5; border: 1px solid #dde; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-family: monospace; }
+
+  .tag-new { background: #dcfce7; color: #166534; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; vertical-align: middle; margin-left: 4px; }
+  .tag-mod { background: #dbeafe; color: #1d4ed8; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; vertical-align: middle; margin-left: 4px; }
+  .tag-fix { background: #fee2e2; color: #991b1b; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; vertical-align: middle; margin-left: 4px; }
+
+  .file-list { margin: 8px 0; }
+  .file-item { display: flex; align-items: flex-start; gap: 10px; padding: 5px 0; border-bottom: 1px solid #f0f2f5; }
+  .file-path { font-family: monospace; font-size: 11px; color: #1300fd; min-width: 280px; }
+  .file-desc { font-size: 12px; color: #444; }
+
+  .divider { height: 1px; background: linear-gradient(90deg, #1300fd33, #6c00e033, transparent); margin: 30px 0; }
+
+  @media print {
+    .content { padding: 20px 30px; }
+    h2 { page-break-before: auto; }
+    pre { white-space: pre-wrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="cover">
+  <div class="cover-logo">Corporación Universitaria Americana</div>
+  <h1>Documentación Técnica<br>Sistema de Seguimiento<br>de Virtualización</h1>
+  <p>Registro de cambios, configuración y arquitectura del sistema</p>
+  <div class="cover-meta">Actualizado: 17 de junio de 2026 &nbsp;·&nbsp; Versión: 2.0</div>
+</div>
+
+<div class="content">
+
+<!-- ÍNDICE -->
+<h2>Contenido</h2>
+<ol style="padding-left:20px; line-height:2">
+  <li>Descripción general del sistema</li>
+  <li>Roles y accesos</li>
+  <li>Flujo de estados de un curso</li>
+  <li>Cambios implementados — Flujo Gestor</li>
+  <li>Cambios implementados — Flujo DI</li>
+  <li>Nuevas funcionalidades (v2.0)</li>
+  <li>Correcciones técnicas (v2.0)</li>
+  <li>Archivos modificados</li>
+  <li>Configuración de correos (DWD)</li>
+  <li>Configuración del entorno (.env.local)</li>
+  <li>Instalación y ejecución local</li>
+  <li>Despliegue en servidor de producción</li>
+</ol>
+
+<div class="divider"></div>
+
+<!-- 1. DESCRIPCIÓN GENERAL -->
+<h2>1. Descripción general del sistema</h2>
+<p>
+  Aplicación web desarrollada en <strong>Next.js 16</strong> (App Router) para hacer seguimiento
+  al proceso de virtualización de cursos académicos en la Corporación Universitaria Americana.
+</p>
+
+<table>
+  <tr><th>Componente</th><th>Tecnología</th></tr>
+  <tr><td>Framework</td><td>Next.js 16.2.6 con App Router</td></tr>
+  <tr><td>Frontend</td><td>React 19 + Tailwind CSS 4</td></tr>
+  <tr><td>Autenticación</td><td>NextAuth v4 (Credentials provider)</td></tr>
+  <tr><td>Base de datos principal</td><td>Google Sheets (sincronizado con Excel local)</td></tr>
+  <tr><td>Base de datos local respaldo</td><td>Archivo Excel <code>data/cursos.xlsx</code></td></tr>
+  <tr><td>Correos</td><td>Google DWD → OAuth Personal → SMTP (en cascada)</td></tr>
+  <tr><td>Despliegue</td><td>Linux + Nginx en <code>/seguimiento</code> + PM2</td></tr>
+  <tr><td>URL de producción</td><td><code>http://kora.americana.edu.co/seguimiento</code></td></tr>
+</table>
+
+<div class="divider"></div>
+
+<!-- 2. ROLES -->
+<h2>2. Roles y accesos</h2>
+
+<table>
+  <tr><th>Rol</th><th>Usuario</th><th>Página</th><th>Función principal</th></tr>
+  <tr><td>Gestor de Contenido</td><td>spalencia, hojeda, kmunoz, anunez, mjortega, yromero, aarrieta, jadie, mmantilla, cnavarro, molaciregui, mpimienta</td><td>/gestor</td><td>Registrar inicio, envío y corrección de contenidos</td></tr>
+  <tr><td>Diseñador Instruccional</td><td>adelariveros, avelandia, julianvargas, luztinoco, yazminmoreno, luiscortes, diegopatino</td><td>/di</td><td>Revisar, aprobar o devolver cursos</td></tr>
+  <tr><td>Coordinador GC</td><td>maescobar</td><td>/coordinador</td><td>Asignar gestores y links a cursos + crear cursos</td></tr>
+  <tr><td>Coordinador DI</td><td>karamirez</td><td>/coordinador-di</td><td>Asignar DIs y links a cursos en revisión</td></tr>
+  <tr><td>Super Admin</td><td>admin</td><td>/admin</td><td>Dashboard de solo lectura + gestión de contraseñas + reporte de aprobados</td></tr>
+</table>
+
+<div class="box">
+  <strong>Contraseña por defecto:</strong> <code>americana2025</code> (para todos los usuarios que no tengan contraseña personalizada en <code>data/passwords.json</code>)
+</div>
+
+<div class="divider"></div>
+
+<!-- 3. FLUJO DE ESTADOS -->
+<h2>3. Flujo de estados de un curso</h2>
+
+<div class="flow">
+  <span class="flow-step">No empezado</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">En proceso</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">En revisión</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">Aprobado DI</span>
+</div>
+<div class="flow" style="margin-top:4px">
+  <span style="font-size:11px;color:#666">Ciclo de corrección:</span>
+  <span class="flow-step" style="background:#dc2626">En revisión</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step" style="background:#dc2626">Corrección</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step" style="background:#dc2626">En revisión</span>
+</div>
+
+<div class="box-warn">
+  <strong>Nota:</strong> Los cursos nuevos creados desde la plataforma inician con estado <code>No empezado</code>. El sistema reconoce tanto <code>No empezado</code> como <code>Sin iniciar</code> como equivalentes.
+</div>
+
+<h3>Quién mueve cada estado</h3>
+<table>
+  <tr><th>Acción</th><th>Quién la hace</th><th>Estado anterior</th><th>Estado nuevo</th></tr>
+  <tr><td>Crear curso</td><td>Coordinador GC</td><td>—</td><td>No empezado</td></tr>
+  <tr><td>Asignar gestor</td><td>Coordinador GC</td><td>—</td><td>—</td></tr>
+  <tr><td>Inicio contenido</td><td>Gestor</td><td>No empezado</td><td>En proceso</td></tr>
+  <tr><td>Enviado</td><td>Gestor</td><td>En proceso</td><td>En revisión</td></tr>
+  <tr><td>Corregido</td><td>Gestor</td><td>Corrección</td><td>En revisión</td></tr>
+  <tr><td>Asignar DI</td><td>Coordinador DI</td><td>—</td><td>—</td></tr>
+  <tr><td>Inicio revisión</td><td>DI</td><td>En revisión</td><td>En revisión (confirmado)</td></tr>
+  <tr><td>Aprobado</td><td>DI</td><td>En revisión</td><td>Aprobado DI</td></tr>
+  <tr><td>Devuelto</td><td>DI</td><td>En revisión</td><td>Corrección</td></tr>
+</table>
+
+<div class="divider"></div>
+
+<!-- 4. CAMBIOS GESTOR -->
+<h2>4. Cambios implementados — Flujo Gestor</h2>
+
+<p>Se separaron las columnas <strong>"Gestor asignado"</strong> y <strong>"Gestor responsable"</strong> para registrar quién fue asignado por el coordinador y quién confirmó el trabajo iniciándolo.</p>
+
+<h3>Columnas del Google Sheet afectadas</h3>
+<table>
+  <tr><th>Columna</th><th>Cuándo se escribe</th><th>Quién lo dispara</th></tr>
+  <tr><td><strong>Gestor asignado</strong> <span class="tag-new">NUEVO</span></td><td>Al asignar desde /coordinador</td><td>Coordinador GC</td></tr>
+  <tr><td><strong>Gestor responsable</strong> <span class="tag-mod">MODIFICADO</span></td><td>Al hacer clic "Inicio contenido"</td><td>Gestor</td></tr>
+  <tr><td><strong>Inicio Gestor</strong></td><td>Al hacer clic "Inicio contenido"</td><td>Gestor</td></tr>
+  <tr><td><strong>Fin Gestor</strong></td><td>Al hacer clic "Enviado"</td><td>Gestor</td></tr>
+</table>
+
+<h3>Enlace del curso en vista Gestor</h3>
+<p>El gestor ve el botón <strong>"Abrir curso"</strong> en todas las pestañas (incluyendo Corrección) cuando el coordinador haya asignado un link. El link se almacena en <code>data/course-links.json</code> via <code>POST /api/assign</code>.</p>
+
+<div class="divider"></div>
+
+<!-- 5. CAMBIOS DI -->
+<h2>5. Cambios implementados — Flujo DI</h2>
+
+<h3>Columnas del Google Sheet afectadas</h3>
+<table>
+  <tr><th>Columna</th><th>Cuándo se escribe</th><th>Valor</th></tr>
+  <tr><td><strong>DI asignado</strong> <span class="tag-new">NUEVO</span></td><td>Al asignar desde /coordinador-di</td><td>Nombre del DI</td></tr>
+  <tr><td><strong>Fecha de asignación</strong> <span class="tag-new">NUEVO</span></td><td>Al asignar desde /coordinador-di</td><td>Fecha del día</td></tr>
+  <tr><td><strong>DI responsable</strong> <span class="tag-mod">MODIFICADO</span></td><td>Al hacer clic "Iniciar revisión"</td><td>Nombre del DI</td></tr>
+  <tr><td><strong>Estado de la asignación</strong> <span class="tag-new">NUEVO</span></td><td>Al iniciar, aprobar o devolver</td><td>"En revisión" / "Aprobado" / "Corrección"</td></tr>
+  <tr><td><strong>Fecha inicio revisión DI</strong></td><td>Al hacer clic "Iniciar revisión"</td><td>Fecha del día</td></tr>
+  <tr><td><strong>Estado curso</strong></td><td>Al aprobar o devolver</td><td>"Aprobado" / "Corrección"</td></tr>
+  <tr><td><strong>Fecha fin revisión DI</strong></td><td>Al aprobar</td><td>Fecha del día</td></tr>
+  <tr><td><strong>Fecha fin corrección gestor</strong></td><td>Al corregir (gestor)</td><td>Fecha del día</td></tr>
+</table>
+
+<h3>Comportamiento de botones en /di</h3>
+<table>
+  <tr><th>Botón</th><th>Modal de confirmación</th><th>Condición para aparecer</th></tr>
+  <tr><td><span class="badge badge-violet">Iniciar revisión</span></td><td>❌ Ejecuta directo</td><td><code>Fecha inicio revisión DI</code> vacía</td></tr>
+  <tr><td><span class="badge badge-green">Aprobar</span></td><td>❌ Ejecuta directo</td><td><code>Fecha inicio revisión DI</code> tiene valor</td></tr>
+  <tr><td><span class="badge badge-orange">Devolver</span></td><td>✅ Muestra modal (para escribir motivo)</td><td><code>Fecha inicio revisión DI</code> tiene valor</td></tr>
+</table>
+
+<p>El DI solo ve <strong>"Enlace DI"</strong> (no "Abrir curso") — ese link lo asigna el Coordinador DI.</p>
+
+<div class="divider"></div>
+
+<!-- 6. NUEVAS FUNCIONALIDADES v2.0 -->
+<h2>6. Nuevas funcionalidades (v2.0)</h2>
+
+<h3>6.1 Creación de cursos desde la plataforma <span class="tag-new">NUEVO</span></h3>
+<p>El Coordinador GC puede crear nuevos cursos directamente desde <code>/coordinador</code> usando el botón <strong>"+ Agregar curso"</strong>. El formulario incluye todos los campos del Excel organizados en secciones.</p>
+
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr>
+  <tr><td>Nivel *</td><td>Select</td><td>Determina la hoja del Excel donde se guarda</td></tr>
+  <tr><td>Modalidad</td><td>Select</td><td>Virtual / Presencial / Ambas</td></tr>
+  <tr><td>Programa *</td><td>Select dinámico</td><td>Carga programas según el nivel seleccionado</td></tr>
+  <tr><td>Asignatura *</td><td>Texto</td><td>Campo obligatorio</td></tr>
+  <tr><td>Tipo de asignatura</td><td>Select</td><td>Si es "Electiva" aparece campo "Nombre electiva"</td></tr>
+  <tr><td>Prioridad</td><td>Select</td><td>Opciones: Sin especificar / Prioridad / No</td></tr>
+  <tr><td>Malla curricular</td><td>Select</td><td>Opciones: Nueva / Actual / Ambas / Antigua</td></tr>
+  <tr><td>Fecha prog. producción</td><td>Mes (AAAA-MM)</td><td>Selector de mes, sin día</td></tr>
+  <tr><td>Estado</td><td>Fijo</td><td>Siempre <code>No empezado</code></td></tr>
+</table>
+
+<div class="box">
+  <strong>API:</strong> <code>POST /api/courses</code> — escribe en Excel local y sincroniza a Google Sheets si las credenciales están configuradas.
+</div>
+
+<h3>6.2 Reporte diario de cursos aprobados <span class="tag-new">NUEVO</span></h3>
+<p>Desde el panel Super Admin, el botón <strong>"Reporte aprobados"</strong> envía un correo a <code>coordinacion_di@americana.edu.co</code> con los cursos aprobados hoy.</p>
+
+<table>
+  <tr><th>Característica</th><th>Detalle</th></tr>
+  <tr><td>Destinatario</td><td><code>coordinacion_di@americana.edu.co</code></td></tr>
+  <tr><td>Ventana de tiempo</td><td>Fecha de aprobación = hoy o ayer (aproxima 6 PM–6 PM)</td></tr>
+  <tr><td>Agrupación</td><td>Posgrado / Pregrado → Proyecto</td></tr>
+  <tr><td>Contenido del correo</td><td>Lista de cursos HTML + bloque de texto copiable</td></tr>
+  <tr><td>Adjunto</td><td>Excel con todos los aprobados históricos</td></tr>
+  <tr><td>Sin aprobados</td><td>No envía correo, retorna mensaje informativo</td></tr>
+</table>
+
+<p>También puede invocarse desde cron con token bearer:</p>
+<pre>curl -X POST https://kora.americana.edu.co/seguimiento/api/report/approved \
+  -H "<span class="key">Authorization</span>: <span class="val">Bearer $REPORT_SECRET</span>"</pre>
+
+<h3>6.3 Redesign del panel Admin <span class="tag-mod">MEJORADO</span></h3>
+<p>La vista del Super Admin pasó de una tabla ancha con scroll a una grilla compacta:</p>
+<table>
+  <tr><th>Columnas visibles en la grilla</th><th>Ancho</th></tr>
+  <tr><td>Nivel</td><td>65 px</td></tr>
+  <tr><td>Programa</td><td>160 px</td></tr>
+  <tr><td>Modalidad</td><td>90 px</td></tr>
+  <tr><td>Asignatura</td><td>flexible</td></tr>
+  <tr><td>Estado</td><td>120 px</td></tr>
+  <tr><td>Botón "Ver"</td><td>76 px</td></tr>
+</table>
+<p>El botón <strong>"Ver"</strong> abre un modal de detalle con toda la información del curso: estado, prioridad, gestor, DI y línea de tiempo de fechas con badges de días transcurridos.</p>
+
+<div class="divider"></div>
+
+<!-- 7. CORRECCIONES TÉCNICAS v2.0 -->
+<h2>7. Correcciones técnicas (v2.0)</h2>
+
+<h3>7.1 Normalización de nombres de columna al leer Excel <span class="tag-fix">FIX</span></h3>
+<p>
+  <code>readSheet()</code> ahora aplica <code>normalizeRowKeys()</code> después de <code>sheet_to_json</code>.
+  Esto mapea variantes de nombres de columna (ej: <code>"Link "</code> con espacio, <code>"Enlace"</code>, <code>"Gestor responsable "</code>)
+  a sus nombres canónicos usando <code>COL_ALIASES</code>. Antes, <code>curso.Link</code> era <code>undefined</code>
+  si la columna en el Excel tenía un espacio al final.
+</p>
+
+<h3>7.2 Claves de course-links.json con espacios <span class="tag-fix">FIX</span></h3>
+<p>
+  Las claves del archivo <code>data/course-links.json</code> se normalizan al cargar y al guardar
+  (trim de cada segmento separado por <code>::</code>). Antes, una clave guardada como
+  <code>"Doctorado::Doctorado en Desarrollo Sostenible::Electiva Disciplinar III "</code>
+  (espacio al final) nunca coincidía con la búsqueda que usaba <code>.trim()</code>.
+</p>
+
+<h3>7.3 Comparación de fechas en reporte <span class="tag-fix">FIX</span></h3>
+<p>
+  El reporte de aprobados usaba <code>String(fecha)</code> para comparar, pero las fechas del Excel
+  llegan como objetos <code>Date</code> (por <code>cellDates: true</code>). Se añadió la función
+  <code>parseDateField()</code> que normaliza cualquier formato (Date, serial Excel, ISO, DD/MM/YYYY)
+  a <code>DD/MM/YYYY</code> antes de comparar.
+</p>
+
+<h3>7.4 DWD con adjuntos (MIME multipart) <span class="tag-fix">FIX</span></h3>
+<p>
+  <code>sendViaDWD()</code> ahora construye un mensaje <code>multipart/mixed</code> cuando hay adjuntos,
+  en lugar de un email HTML simple de una sola parte. Esto permite enviar el Excel adjunto vía DWD
+  sin necesitar SMTP.
+</p>
+
+<h3>7.5 Formato de observaciones en correos <span class="tag-fix">FIX</span></h3>
+<p>
+  Las observaciones escritas en formularios (con saltos de línea, párrafos) ahora llegan correctamente
+  al correo. Cada línea se envuelve en un <code>&lt;p&gt;</code> HTML, preservando el formato original.
+</p>
+
+<h3>7.6 Badges de días eliminados <span class="tag-mod">MEJORA UX</span></h3>
+<p>
+  Los badges de días transcurridos (ej: <code>664786d</code>) fueron eliminados de las vistas de
+  Gestor, DI y Admin. La información de fechas y tiempo transcurrido está disponible en el modal
+  de detalle del Admin.
+</p>
+
+<div class="divider"></div>
+
+<!-- 8. ARCHIVOS MODIFICADOS -->
+<h2>8. Archivos modificados</h2>
+
+<div class="file-list">
+  <div class="file-item">
+    <span class="file-path">lib/excel.ts</span>
+    <span class="file-desc">Agrega <code>normalizeRowKeys()</code> + <code>ALIAS_REVERSE</code> en <code>readSheet()</code>; función <code>appendCourse()</code> genérica</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">lib/sheets.ts</span>
+    <span class="file-desc">Agrega <code>appendCourse()</code> que escribe en Excel y Google Sheets</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">lib/course-links.ts</span>
+    <span class="file-desc">Normaliza claves (trim por segmento) en <code>readLinks()</code> y <code>courseKey()</code></span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">lib/email.ts</span>
+    <span class="file-desc">DWD con soporte MIME multipart para adjuntos; observaciones con párrafos HTML</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">app/api/courses/route.ts</span>
+    <span class="file-desc">NUEVO — endpoint para crear cursos desde la plataforma (solo Coordinador)</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">app/api/report/approved/route.ts</span>
+    <span class="file-desc">NUEVO — reporte de cursos aprobados con adjunto Excel y auth por sesión o bearer token</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">app/api/assign/route.ts</span>
+    <span class="file-desc">Cambia escritura de "Gestor responsable" → "Gestor asignado"</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">app/api/assign-di/route.ts</span>
+    <span class="file-desc">Agrega "Fecha de asignación" al asignar DI</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">app/api/my-courses/route.ts</span>
+    <span class="file-desc">Filtra por "Gestor asignado" OR "Gestor responsable" (y equivalente DI)</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">app/coordinador/page.tsx</span>
+    <span class="file-desc">Agrega modal "Agregar curso" con todos los campos; campos Prioridad/Malla como select; Fecha como month picker</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">app/di/page.tsx</span>
+    <span class="file-desc">"Iniciar revisión" y "Aprobar" ejecutan sin modal; solo "Devolver" muestra modal; solo muestra "Enlace DI"</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">app/gestor/page.tsx</span>
+    <span class="file-desc">"Abrir curso" visible en todos los estados; eliminados badges de días</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">app/admin/page.tsx</span>
+    <span class="file-desc">Grilla compacta 6 columnas; modal de detalle; botón reporte; eliminados Gestor/DI columns y badges</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">config/estados.ts</span>
+    <span class="file-desc">Agrega escrituras a nuevas columnas en cada transición</span>
+  </div>
+  <div class="file-item">
+    <span class="file-path">.env.local</span>
+    <span class="file-desc">Agrega <code>REPORT_FROM_EMAIL</code> y <code>REPORT_SECRET</code></span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- 9. CORREOS DWD -->
+<h2>9. Configuración de correos — Google DWD</h2>
+
+<p>
+  El sistema envía correos usando <strong>Domain-Wide Delegation (DWD)</strong> de Google.
+  Esto permite que los correos salgan con el nombre real de quien tomó la acción
+  (ej: el correo aparece enviado por <em>Samir Palencia</em> aunque lo envíe un servidor).
+</p>
+
+<h3>Cadena de envío (en orden de prioridad)</h3>
+<table>
+  <tr><th>#</th><th>Método</th><th>Condición</th></tr>
+  <tr><td>1</td><td>Google DWD</td><td>Si <code>GOOGLE_SERVICE_ACCOUNT_EMAIL</code>, <code>GOOGLE_PRIVATE_KEY</code> y <code>fromEmail</code> están configurados</td></tr>
+  <tr><td>2</td><td>OAuth Personal</td><td>Si el usuario conectó su Gmail en <code>/connect-gmail</code></td></tr>
+  <tr><td>3</td><td>SMTP</td><td>Si <code>SMTP_USER</code> y <code>SMTP_PASS</code> están configurados</td></tr>
+</table>
+
+<div class="box-warn">
+  <strong>Para el reporte automático:</strong> Se necesita <code>REPORT_FROM_EMAIL</code> en <code>.env.local</code>
+  con una dirección del dominio <code>@americana.edu.co</code> que la cuenta de servicio pueda impersonar (DWD).
+  Ejemplo: <code>REPORT_FROM_EMAIL=coordinacion_gc@americana.edu.co</code>
+</div>
+
+<h3>Configuración DWD realizada</h3>
+<table>
+  <tr><th>Paso</th><th>Dónde</th><th>Qué se hizo</th></tr>
+  <tr><td>1</td><td>Google Cloud Console</td><td>Cuenta de servicio: <code>cliente-web-4@produccion-n8n.iam.gserviceaccount.com</code></td></tr>
+  <tr><td>2</td><td>Google Cloud Console</td><td>Gmail API habilitada en proyecto <code>produccion-n8n</code></td></tr>
+  <tr><td>3</td><td>Google Workspace Admin</td><td>DWD autorizado con scope <code>gmail.send</code> (ID cliente: 104319985424081188140)</td></tr>
+  <tr><td>4</td><td>Google Sheets</td><td>Sheet compartido con la cuenta de servicio como Editor</td></tr>
+</table>
+
+<h3>Notificaciones por evento</h3>
+<table>
+  <tr><th>Evento</th><th>Destinatarios</th></tr>
+  <tr><td>Asignación de gestor</td><td>CGC + CDI + IE + Gestor asignado</td></tr>
+  <tr><td>Enviado (gestor)</td><td>CGC + CDI + IE</td></tr>
+  <tr><td>Corregido (gestor)</td><td>CGC + CDI + IE + DI responsable</td></tr>
+  <tr><td>Aprobado (DI)</td><td>CGC + CDI + IE + Gestor responsable</td></tr>
+  <tr><td>Devuelto (DI)</td><td>CGC + CDI + IE + Gestor responsable</td></tr>
+  <tr><td>Asignación de DI</td><td>IE + DI asignado</td></tr>
+  <tr><td>Reporte de aprobados</td><td><code>coordinacion_di@americana.edu.co</code></td></tr>
+</table>
+
+<div class="divider"></div>
+
+<!-- 10. ENV.LOCAL -->
+<h2>10. Archivo .env.local</h2>
+
+<pre><span class="comment"># ── Autenticación NextAuth ─────────────────────────────</span>
+<span class="key">NEXTAUTH_URL</span>=<span class="val">http://localhost:3000</span>                  <span class="comment"># local</span>
+<span class="key">NEXTAUTH_URL</span>=<span class="val">http://kora.americana.edu.co/seguimiento</span> <span class="comment"># producción</span>
+<span class="key">NEXTAUTH_SECRET</span>=<span class="val">xZFlR29maOXQWVKxZRXSwL/BLA8h3QmQA94z2plVJfw=</span>
+
+<span class="comment"># ── SMTP (respaldo si DWD falla) ───────────────────────</span>
+<span class="key">SMTP_HOST</span>=<span class="val">smtp.gmail.com</span>
+<span class="key">SMTP_PORT</span>=<span class="val">587</span>
+<span class="key">SMTP_SECURE</span>=<span class="val">false</span>
+<span class="key">SMTP_USER</span>=<span class="val"></span>                  <span class="comment"># dejar vacío si se usa DWD</span>
+<span class="key">SMTP_PASS</span>=<span class="val"></span>
+
+<span class="comment"># ── Reporte automático ─────────────────────────────────</span>
+<span class="key">REPORT_FROM_EMAIL</span>=<span class="val">coordinacion_gc@americana.edu.co</span>  <span class="comment"># cuenta del dominio para DWD</span>
+<span class="key">REPORT_SECRET</span>=<span class="val">token-secreto-para-cron</span>              <span class="comment"># bearer token para cron</span>
+
+<span class="comment"># ── Google API (DWD + Sheets) ──────────────────────────</span>
+<span class="key">GOOGLE_SERVICE_ACCOUNT_EMAIL</span>=<span class="val">cliente-web-4@produccion-n8n.iam.gserviceaccount.com</span>
+<span class="key">GOOGLE_PRIVATE_KEY</span>=<span class="val">"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"</span>
+<span class="key">GOOGLE_SHEETS_ID</span>=<span class="val">1oGq9zDPgw1wCcdeb419d-9hr6I_R4aVOtUwtRk_1zvI</span>
+
+<span class="comment"># ── Producción solamente ───────────────────────────────</span>
+<span class="key">NEXT_PUBLIC_BASE_PATH</span>=<span class="val">/seguimiento</span></pre>
+
+<div class="box-warn">
+  <strong>Diferencias local vs producción:</strong><br>
+  • <code>NEXTAUTH_URL</code>: <code>http://localhost:3000</code> (local) vs URL completa (producción)<br>
+  • <code>NEXT_PUBLIC_BASE_PATH</code>: vacío (local) vs <code>/seguimiento</code> (producción)
+</div>
+
+<div class="divider"></div>
+
+<!-- 11. INSTALACIÓN LOCAL -->
+<h2>11. Instalación y ejecución local</h2>
+
+<h3>Requisitos</h3>
+<ul style="padding-left:20px; margin-bottom:10px">
+  <li>Node.js v18+ instalado desde <strong>nodejs.org</strong></li>
+  <li>Archivo <code>.env.local</code> configurado en la raíz del proyecto</li>
+</ul>
+
+<h3>Comandos</h3>
+<pre><span class="comment"># 1. Instalar dependencias (solo la primera vez)</span>
+npm install --legacy-peer-deps
+
+<span class="comment"># 2. Iniciar servidor de desarrollo</span>
+npm run dev
+<span class="comment"># → Abre http://localhost:3000</span>
+
+<span class="comment"># 3. Construir para producción</span>
+npm run build
+
+<span class="comment"># 4. Verificar errores de linting</span>
+npm run lint</pre>
+
+<div class="box">
+  <strong>Nota Windows:</strong> Si aparece error de permisos de PowerShell al correr npm, abre PowerShell como administrador y ejecuta:
+  <br><code>Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned</code>
+  <br>O usa directamente: <code>C:\Program Files\nodejs\npm.cmd run dev</code>
+</div>
+
+<div class="divider"></div>
+
+<!-- 12. PRODUCCIÓN -->
+<h2>12. Despliegue en servidor de producción</h2>
+
+<h3>Datos del servidor</h3>
+<table>
+  <tr><th>Campo</th><th>Valor</th></tr>
+  <tr><td>URL</td><td><code>http://kora.americana.edu.co/seguimiento</code></td></tr>
+  <tr><td>Directorio</td><td><code>/var/www/html/seguimiento</code></td></tr>
+  <tr><td>Gestor de procesos</td><td>PM2 (proceso: <code>seguimiento</code>)</td></tr>
+  <tr><td>Servidor web</td><td>Nginx con basePath <code>/seguimiento</code></td></tr>
+</table>
+
+<h3>Proceso de despliegue</h3>
+<pre><span class="comment"># Conectar al servidor</span>
+ssh usuario@kora.americana.edu.co
+cd /var/www/html/seguimiento
+
+<span class="comment"># Actualizar código</span>
+git pull
+
+<span class="comment"># Reconstruir y reiniciar</span>
+npm run build
+pm2 restart seguimiento
+
+<span class="comment"># Ver logs en tiempo real</span>
+pm2 logs seguimiento</pre>
+
+<h3>Configurar reporte automático diario (5:30 PM)</h3>
+<pre><span class="comment"># Editar crontab del servidor</span>
+crontab -e
+
+<span class="comment"># Agregar esta línea:</span>
+30 17 * * * curl -s -X POST http://localhost:3000/api/report/approved \
+  -H "Authorization: Bearer TU_REPORT_SECRET" >> /var/log/reporte-aprobados.log 2>&1</pre>
+
+<h3>Copiar .env.local al servidor (primera vez)</h3>
+<pre><span class="comment"># Desde tu equipo local:</span>
+scp .env.local usuario@kora.americana.edu.co:/var/www/html/seguimiento/.env.local</pre>
+
+<div class="box-green">
+  <strong>✅ Recuerda cambiar en el .env.local del servidor:</strong><br>
+  <code>NEXTAUTH_URL=http://kora.americana.edu.co/seguimiento</code><br>
+  <code>NEXT_PUBLIC_BASE_PATH=/seguimiento</code><br>
+  <code>REPORT_FROM_EMAIL=coordinacion_gc@americana.edu.co</code><br>
+  <code>REPORT_SECRET=token-secreto-seguro</code>
+</div>
+
+<div class="divider"></div>
+
+<p style="text-align:center; color:#9ca3af; font-size:11px; padding: 20px 0">
+  Sistema de Seguimiento de Virtualización · Corporación Universitaria Americana · 2026 · v2.0
+</p>
+
+</div>
+</body>
+</html>

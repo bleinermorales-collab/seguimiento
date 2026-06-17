@@ -1,0 +1,25 @@
+{
+  "gestores": [
+    { "nombre": "Samir Palencia Gerónimo",       "email": "palenciasamir_adm@americana.edu.co" },
+    { "nombre": "Hillary Ojeda Durango",          "email": "ojedahillary_adm@americana.edu.co" },
+    { "nombre": "Karina Muñoz Sierra",            "email": "munozkarina_adm@americana.edu.co" },
+    { "nombre": "Andrea Nuñez Fonseca",           "email": "andreanunez_adm@americana.edu.co" },
+    { "nombre": "María José Ortega Martínez",     "email": "mariaortega@americana.edu.co" },
+    { "nombre": "Yelitza Romero",                 "email": "yelitzaromero_doc@americana.edu.co" },
+    { "nombre": "Alexandra Arrieta",              "email": "arrietaalexandra@americana.edu.co" },
+    { "nombre": "Jamer Adie",                     "email": "adiejamer@americana.edu.co" },
+    { "nombre": "Milena Mantilla",                "email": "milenamantilla@americana.edu.co" },
+    { "nombre": "Claudia Navarro",                "email": "navarroclaudia@americana.edu.co" },
+    { "nombre": "Martha Olaciregui",              "email": "molaciregui@americana.edu.co" },
+    { "nombre": "Martha Pimienta",                "email": "mpimienta@americana.edu.co" }
+  ],
+  "dis": [
+    { "nombre": "Adela Del Rosario Riveros Flores", "email": "adelariveros@americana.edu.co" },
+    { "nombre": "Andrés Felipe Velandia Espitia",   "email": "velandiaandres@americana.edu.co" },
+    { "nombre": "Julián Efrén Vargas Galvis",       "email": "julianvargas@americana.edu.co" },
+    { "nombre": "Luz Nelly Tinoco Torres",           "email": "Luztinoco@americana.edu.co" },
+    { "nombre": "Yazmín Moreno Ibáñez",             "email": "YazminMoreno@americana.edu.co" },
+    { "nombre": "Luis Enrique Cortes Lasso",         "email": "luiscortes_adm@americana.edu.co" },
+    { "nombre": "Diego Alejandro Patiño Roja",       "email": "diegopatino_adm@americana.edu.co" }
+  ]
+}

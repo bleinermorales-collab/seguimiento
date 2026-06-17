@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+:root {
+  --font-geist: 'Geist', system-ui, sans-serif;
+}
+
+body {
+  background: #f9fafb;
+  color: #111827;
+  font-family: var(--font-geist);
+}
