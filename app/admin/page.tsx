@@ -14,6 +14,7 @@ interface CourseRow {
   'Gestor responsable '?: string;
   'Gestor responsable'?: string;
   'DI responsable'?: string;
+  'Fecha de asignación'?: string;
   'Inicio Gestor'?: string;
   'Fin Gestor'?: string;
   'Fecha inicio revisión DI'?: string;
