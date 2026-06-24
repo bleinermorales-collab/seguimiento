@@ -181,13 +181,14 @@ export async function updateCourse(
     try {
       await updateGoogleSheet(nivel, asignatura, updates, programa);
       console.log(`[sheets] ✅ Google Sheets actualizado: "${asignatura}" — campos: ${Object.keys(updates).join(', ')}`);
+      return true; // Google Sheets is primary — success even if local Excel is out of sync
     } catch (err) {
       console.error('[sheets] ❌ Google Sheets falló:', err);
+      return excelOk;
     }
-  } else {
-    console.log('[sheets] ℹ️ Sin credenciales de Google — solo Excel local actualizado');
   }
 
+  console.log('[sheets] ℹ️ Sin credenciales de Google — solo Excel local actualizado');
   return excelOk;
 }
 
