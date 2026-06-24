@@ -20,8 +20,18 @@ jobs:
           port: 2244
           script: |
             cd /var/www/html/seguimiento-main
+
+            # Preserve runtime data files before git reset
+            cp data/cursos.xlsx /tmp/seguimiento-cursos-backup.xlsx 2>/dev/null || true
+            cp data/course-links.json /tmp/seguimiento-links-backup.json 2>/dev/null || true
+
             git fetch origin main
             git reset --hard origin/main
+
+            # Restore runtime data files (never overwrite with old repo version)
+            [ -f /tmp/seguimiento-cursos-backup.xlsx ] && cp /tmp/seguimiento-cursos-backup.xlsx data/cursos.xlsx
+            [ -f /tmp/seguimiento-links-backup.json ] && cp /tmp/seguimiento-links-backup.json data/course-links.json
+
             npm install --legacy-peer-deps
             npm run build
             systemctl restart seguimiento
