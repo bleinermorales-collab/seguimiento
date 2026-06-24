@@ -48,7 +48,7 @@ function linkDI(c: Curso): string {
   return String(c['Link DI'] ?? '').trim();
 }
 function linkGestor(c: Curso): string {
-  return String(c['Link Gestor'] ?? '').trim();
+  return String(c['Link Gestor'] ?? c['Link'] ?? '').trim();
 }
 function parseDate(s: unknown): Date | null {
   if (!s) return null;
