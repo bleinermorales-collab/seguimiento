@@ -152,9 +152,10 @@ export default function AdminPage() {
     } finally { setSaving(null); }
   }
 
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const filtered = sortPriorityDate(courses.filter(c => {
-    const q = search.toLowerCase();
-    const matchSearch = !search || String(c.Asignatura || '').toLowerCase().includes(q) || String(c._programa || '').toLowerCase().includes(q);
+    const q = norm(search);
+    const matchSearch = !search || norm(String(c.Asignatura || '')).includes(q) || norm(String(c._programa || '')).includes(q);
     return matchSearch && (!filterNivel || c._nivel === filterNivel) && (!filterEstado || c.Estado === filterEstado);
   }));
 

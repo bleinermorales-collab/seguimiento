@@ -155,11 +155,12 @@ export default function CoordinadorPage() {
   const linkActual = (c: Curso) => String(c['Link'] ?? '').trim();
   const key = (c: Curso) => `${c._nivel}::${c._programa}::${c.Asignatura}`;
 
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const applyFilters = (list: Curso[]) => list.filter(c => {
     if (nivelFilter && c._nivel !== nivelFilter) return false;
     if (filterEstado && String(c.Estado ?? '').trim() !== filterEstado) return false;
-    const q = search.toLowerCase();
-    if (q && !c.Asignatura?.toLowerCase().includes(q) && !c._programa?.toLowerCase().includes(q)) return false;
+    const q = norm(search);
+    if (q && !norm(c.Asignatura ?? '').includes(q) && !norm(c._programa ?? '').includes(q)) return false;
     return true;
   });
 
