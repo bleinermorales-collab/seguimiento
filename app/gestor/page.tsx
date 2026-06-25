@@ -239,7 +239,7 @@ export default function GestorPage() {
   const sortByDate = (list: Curso[]) => [...list].sort((a, b) => {
     const ta = estadoTab(a.Estado, a['Estado curso'], fechaCorreccion(a));
     const tb = estadoTab(b.Estado, b['Estado curso'], fechaCorreccion(b));
-    return (getTabDate(a, ta)?.getTime() ?? Infinity) - (getTabDate(b, tb)?.getTime() ?? Infinity);
+    return (getTabDate(b, tb)?.getTime() ?? -Infinity) - (getTabDate(a, ta)?.getTime() ?? -Infinity);
   });
   const visible = [
     ...sortByDate(filtered.filter(isPriority)),

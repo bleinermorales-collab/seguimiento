@@ -157,7 +157,7 @@ export default function DIPage() {
       const pa = isPriority(a) ? 0 : 1;
       const pb = isPriority(b) ? 0 : 1;
       if (pa !== pb) return pa - pb;
-      return (getDate(a)?.getTime() ?? Infinity) - (getDate(b)?.getTime() ?? Infinity);
+      return (getDate(b)?.getTime() ?? -Infinity) - (getDate(a)?.getTime() ?? -Infinity);
     });
   }
 
