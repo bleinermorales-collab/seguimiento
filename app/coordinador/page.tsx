@@ -715,16 +715,14 @@ export default function CoordinadorPage() {
             <option value="">Todos los semestres</option>
             {semestres.map(s => <option key={s} value={s}>Semestre {s}</option>)}
           </select>
-          {activeTab === 'asignados' && (
-            <select
-              value={filterGestor}
-              onChange={e => setFilterGestor(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-            >
-              <option value="">Todos los gestores</option>
-              {gestores.map((g: string) => <option key={g} value={g}>{g}</option>)}
-            </select>
-          )}
+          <select
+            value={filterGestor}
+            onChange={e => setFilterGestor(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+          >
+            <option value="">Todos los gestores</option>
+            {gestores.map((g: string) => <option key={g} value={g}>{g}</option>)}
+          </select>
           <span className="text-xs text-gray-400">
             {activeTab === 'todos' ? `${todosFiltered.length} cursos`
               : activeTab === 'asignar' ? `${sinIniciar.length} sin iniciar`
