@@ -173,8 +173,13 @@ export async function updateCourse(
   updates: Record<string, unknown>,
   programa?: string
 ): Promise<boolean> {
-  // 1. Always update the local Excel as backup
-  const excelOk = excel.updateCourse(nivel, asignatura, updates, programa);
+  // 1. Always update the local Excel as backup (wrapped so file errors don't break GS flow)
+  let excelOk = false;
+  try {
+    excelOk = excel.updateCourse(nivel, asignatura, updates, programa);
+  } catch (err) {
+    console.error('[sheets] ❌ Excel local falló (ignorado si GS está disponible):', err);
+  }
 
   // 2. Update Google Sheets (the primary database)
   if (hasGoogleCredentials()) {
