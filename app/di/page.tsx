@@ -69,7 +69,16 @@ export default function DIPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    const interval = setInterval(load, 60_000);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleDirectAction = async (curso: Curso, actionId: ActionId) => {
     setSaving(true);

@@ -135,7 +135,18 @@ export default function GestorPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    // Refrescar al volver a la pestaña
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    // Refrescar cada 60 segundos
+    const interval = setInterval(load, 60_000);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleIniciar = async (curso: Curso) => {
     setSaving(true);
