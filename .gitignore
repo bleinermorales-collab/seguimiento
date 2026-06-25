@@ -42,3 +42,5 @@ next-env.d.ts
 .claude/
 scripts/google-apps-script.gs
 data/gmail-tokens.json
+data/users.json
+data/passwords.json
