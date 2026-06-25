@@ -145,6 +145,9 @@ export default function CoordinadorPage() {
   const [addModal, setAddModal] = useState<typeof EMPTY_ADD | null>(null);
   const [addPrograms, setAddPrograms] = useState<string[]>([]);
   const [addSaving, setAddSaving] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [bulkModal, setBulkModal] = useState<{ gestor: string; link: string; obs: string } | null>(null);
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   useEffect(() => {
     fetch(api('/api/admin'))
@@ -221,6 +224,58 @@ export default function CoordinadorPage() {
     } finally {
       setSaving(null);
     }
+  };
+
+  const toggleSelect = (k: string) => {
+    setSelectedKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k); else next.add(k);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedKeys.size === sinIniciar.length) {
+      setSelectedKeys(new Set());
+    } else {
+      setSelectedKeys(new Set(sinIniciar.map(c => key(c))));
+    }
+  };
+
+  const handleBulkAssign = async () => {
+    if (!bulkModal || !bulkModal.gestor) return;
+    setBulkSaving(true);
+    const keys = [...selectedKeys];
+    let ok = 0, fail = 0;
+    for (const k of keys) {
+      const curso = cursos.find(c => key(c) === k);
+      if (!curso) continue;
+      try {
+        const res = await fetch(api('/api/assign'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nivel: curso._nivel,
+            programa: curso._programa,
+            curso: curso.Asignatura,
+            gestor: bulkModal.gestor,
+            link: bulkModal.link,
+            observaciones: bulkModal.obs,
+          }),
+        });
+        if (res.ok) {
+          ok++;
+          setCursos(prev => prev.map(c =>
+            key(c) === k ? { ...c, 'Gestor asignado': bulkModal.gestor, Link: bulkModal.link || c.Link } : c
+          ));
+        } else { fail++; }
+      } catch { fail++; }
+    }
+    if (ok > 0) setMessages(m => [...m, { id: Date.now().toString(), type: 'success', text: `${ok} curso(s) asignado(s) a ${bulkModal.gestor}.` }]);
+    if (fail > 0) setMessages(m => [...m, { id: Date.now().toString(), type: 'error', text: `${fail} curso(s) no pudieron asignarse.` }]);
+    setSelectedKeys(new Set());
+    setBulkModal(null);
+    setBulkSaving(false);
   };
 
   const niveles = ['Pregrado', 'Especializaciones', 'Maestrías', 'Doctorado'];
@@ -721,59 +776,107 @@ export default function CoordinadorPage() {
 
             {/* ── TAB: POR ASIGNAR ── */}
             {activeTab === 'asignar' && (
-              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <div className="min-w-[1050px]">
-                    <div className="grid grid-cols-[130px_210px_85px_1fr_38px_130px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
-                      <span>Nivel</span>
-                      <span>Programa</span>
-                      <span>Modalidad</span>
-                      <span>Asignatura</span>
-                      <span>Sem.</span>
-                      <span>Gestor actual</span>
-                      <span>Acción</span>
-                    </div>
-                    <div className="divide-y divide-gray-50">
-                      {sinIniciar.length === 0 ? (
-                        <div className="text-center py-12 text-gray-400 text-sm">
-                          No hay cursos sin iniciar con los filtros actuales.
-                        </div>
-                      ) : sinIniciar.map((c, i) => {
-                        const actual = gestorActual(c);
-                        const priority = isPriority(c);
-                        return (
-                          <div
-                            key={i}
-                            className={`grid grid-cols-[130px_210px_85px_1fr_38px_130px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/40' : ''}`}
-                          >
-                            <span className="text-xs text-gray-400">{c._nivel}</span>
-                            <span className="text-xs text-gray-500">{c._programa}</span>
-                            <span className="text-xs text-gray-400 truncate">{c._modalidad || '—'}</span>
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              {priority && <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>}
-                              <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
-                            </div>
-                            <span className="text-xs text-gray-400 text-center">{c.Semestre || '—'}</span>
-                            {actual ? (
-                              <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full truncate border border-emerald-200" title={actual}>{actual}</span>
-                            ) : (
-                              <span className="text-xs italic text-gray-300">Sin asignar</span>
-                            )}
-                            <button
-                              onClick={() => setModal({ curso: c, gestor: actual, link: linkActual(c), obs: '' })}
-                              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition shrink-0 ${
-                                actual ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              <>
+                {/* Bulk action bar */}
+                {selectedKeys.size > 0 && (
+                  <div className="flex items-center gap-3 mb-3 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl">
+                    <svg className="w-4 h-4 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm font-semibold text-indigo-700">
+                      {selectedKeys.size} curso{selectedKeys.size !== 1 ? 's' : ''} seleccionado{selectedKeys.size !== 1 ? 's' : ''}
+                    </span>
+                    <button
+                      onClick={() => setBulkModal({ gestor: '', link: '', obs: '' })}
+                      className="ml-2 flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Asignar en bloque
+                    </button>
+                    <button
+                      onClick={() => setSelectedKeys(new Set())}
+                      className="ml-auto text-xs text-indigo-500 hover:text-indigo-700 transition"
+                    >
+                      Deseleccionar todo
+                    </button>
+                  </div>
+                )}
+
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <div className="min-w-[1120px]">
+                      <div className="grid grid-cols-[32px_130px_210px_85px_1fr_38px_130px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3 items-center">
+                        <input
+                          type="checkbox"
+                          checked={sinIniciar.length > 0 && selectedKeys.size === sinIniciar.length}
+                          onChange={toggleSelectAll}
+                          className="w-3.5 h-3.5 rounded accent-indigo-600 cursor-pointer"
+                          title="Seleccionar todos"
+                        />
+                        <span>Nivel</span>
+                        <span>Programa</span>
+                        <span>Modalidad</span>
+                        <span>Asignatura</span>
+                        <span>Sem.</span>
+                        <span>Gestor actual</span>
+                        <span>Acción</span>
+                      </div>
+                      <div className="divide-y divide-gray-50">
+                        {sinIniciar.length === 0 ? (
+                          <div className="text-center py-12 text-gray-400 text-sm">
+                            No hay cursos sin iniciar con los filtros actuales.
+                          </div>
+                        ) : sinIniciar.map((c, i) => {
+                          const actual = gestorActual(c);
+                          const priority = isPriority(c);
+                          const k = key(c);
+                          const checked = selectedKeys.has(k);
+                          return (
+                            <div
+                              key={i}
+                              onClick={() => toggleSelect(k)}
+                              className={`grid grid-cols-[32px_130px_210px_85px_1fr_38px_130px_100px] items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${
+                                checked ? 'bg-indigo-50/60' : priority ? 'bg-red-50/40 hover:bg-gray-50/50' : 'hover:bg-gray-50/50'
                               }`}
                             >
-                              {actual ? 'Reasignar' : 'Asignar'}
-                            </button>
-                          </div>
-                        );
-                      })}
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleSelect(k)}
+                                onClick={e => e.stopPropagation()}
+                                className="w-3.5 h-3.5 rounded accent-indigo-600 cursor-pointer"
+                              />
+                              <span className="text-xs text-gray-400">{c._nivel}</span>
+                              <span className="text-xs text-gray-500">{c._programa}</span>
+                              <span className="text-xs text-gray-400 truncate">{c._modalidad || '—'}</span>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                {priority && <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>}
+                                <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                              </div>
+                              <span className="text-xs text-gray-400 text-center">{c.Semestre || '—'}</span>
+                              {actual ? (
+                                <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full truncate border border-emerald-200" title={actual}>{actual}</span>
+                              ) : (
+                                <span className="text-xs italic text-gray-300">Sin asignar</span>
+                              )}
+                              <button
+                                onClick={e => { e.stopPropagation(); setModal({ curso: c, gestor: actual, link: linkActual(c), obs: '' }); }}
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition shrink-0 ${
+                                  actual ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                }`}
+                              >
+                                {actual ? 'Reasignar' : 'Asignar'}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </>
             )}
 
             {/* ── TAB: DEVUELTOS ── */}
@@ -879,6 +982,62 @@ export default function CoordinadorPage() {
         </div>
       )}
 
+
+      {/* Modal asignación en bloque */}
+      {bulkModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={e => { if (e.target === e.currentTarget) setBulkModal(null); }}>
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full">
+            <h3 className="font-bold text-gray-900 text-base mb-1">Asignación en bloque</h3>
+            <p className="text-sm text-gray-500 mb-5">
+              Se asignará el mismo gestor a <span className="font-semibold text-indigo-600">{selectedKeys.size} curso{selectedKeys.size !== 1 ? 's' : ''}</span>.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Gestor a asignar *</label>
+                <select
+                  value={bulkModal.gestor}
+                  onChange={e => setBulkModal(m => m ? { ...m, gestor: e.target.value } : m)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                >
+                  <option value="">Seleccionar gestor...</option>
+                  {gestores.map((g: string) => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Link del curso (opcional)</label>
+                <input
+                  type="url"
+                  value={bulkModal.link}
+                  onChange={e => setBulkModal(m => m ? { ...m, link: e.target.value } : m)}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Observaciones (opcional)</label>
+                <ObservacionesEditor
+                  value={bulkModal.obs}
+                  onChange={val => setBulkModal(m => m ? { ...m, obs: val } : m)}
+                  placeholder="Notas adicionales..."
+                  ringColor="focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setBulkModal(null)} className="flex-1 py-2.5 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+                Cancelar
+              </button>
+              <button
+                onClick={handleBulkAssign}
+                disabled={bulkSaving || !bulkModal.gestor}
+                className="flex-1 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {bulkSaving ? `Asignando (${selectedKeys.size})...` : `Asignar ${selectedKeys.size} curso${selectedKeys.size !== 1 ? 's' : ''}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal seguimiento */}
       {tracking && (() => {
