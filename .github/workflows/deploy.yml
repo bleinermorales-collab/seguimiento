@@ -19,6 +19,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 2244
           script: |
+            git config --global --add safe.directory /var/www/html/seguimiento-main
             cd /var/www/html/seguimiento-main
 
             # Preserve runtime data files before git reset
