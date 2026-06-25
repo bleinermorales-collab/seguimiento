@@ -165,6 +165,7 @@ export function buildEmailHtml(params: {
 }): string {
   // El enlace DI solo tiene sentido cuando hay un DI asignado en este correo
   const showLinkDI = !!(params.linkDI && params.di);
+  const platformUrl = (process.env.NEXTAUTH_URL || 'https://n8n.americana.edu.co/seguimiento').replace(/\/$/, '');
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -264,6 +265,16 @@ export function buildEmailHtml(params: {
         </td>` : ''}
       </tr></table>
       ` : ''}
+
+      <!-- Botón plataforma (siempre visible) -->
+      <div style="height:1px;background:#e8eaf0;margin:20px 0"></div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td>
+          <a href="${platformUrl}" style="display:block;text-align:center;background:#f0f2f5;color:#1300fd;border:2px solid #1300fd;font-size:13px;font-weight:700;text-decoration:none;padding:12px 20px;border-radius:10px;letter-spacing:.2px">
+            &#127968;&nbsp; Ir a la plataforma de seguimiento
+          </a>
+        </td>
+      </tr></table>
 
       <div style="height:28px"></div>
     </td></tr>
