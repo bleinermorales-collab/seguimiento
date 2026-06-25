@@ -382,6 +382,207 @@ export default function CoordinadorPage() {
           ))}
         </div>
 
+        {addModal ? (
+          /* ── Vista: Agregar nuevo curso ── */
+          <div className="bg-white rounded-2xl border border-gray-200">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-gray-900">Agregar nuevo curso</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Se guardará con estado &quot;No empezado&quot;. Campos con * son obligatorios.</p>
+              </div>
+              <button
+                onClick={() => setAddModal(null)}
+                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Volver
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-6">
+
+              {/* Identificación */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Identificación</p>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Nivel *</label>
+                    <select value={addModal.nivel} onChange={e => handleAddNivelChange(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                      <option value="">Seleccionar...</option>
+                      {niveles.map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Modalidad</label>
+                    <select value={addModal.modalidad} onChange={e => setAdd('modalidad', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                      <option value="">Sin especificar</option>
+                      {opcionesModalidad.map(md => <option key={md} value={md}>{md}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Semestre</label>
+                    <input type="number" min={1} max={12} value={addModal.semestre} onChange={e => setAdd('semestre', e.target.value)}
+                      placeholder="Ej. 3"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Programa *</label>
+                    {addPrograms.length > 0 ? (
+                      <select value={addModal.programa} onChange={e => setAdd('programa', e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                        <option value="">Seleccionar programa...</option>
+                        {addPrograms.map(p => <option key={p} value={p}>{p}</option>)}
+                        <option value="__nuevo__">Otro (escribir manualmente)</option>
+                      </select>
+                    ) : (
+                      <input type="text" value={addModal.programa} onChange={e => setAdd('programa', e.target.value)}
+                        placeholder={addModal.nivel ? 'Nombre del programa' : 'Selecciona el nivel primero'}
+                        disabled={!addModal.nivel}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-50 disabled:text-gray-400" />
+                    )}
+                    {addModal.programa === '__nuevo__' && (
+                      <input type="text" autoFocus placeholder="Nombre del nuevo programa"
+                        onChange={e => setAdd('programa', e.target.value)}
+                        className="w-full mt-2 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Asignatura *</label>
+                    <input type="text" value={addModal.asignatura} onChange={e => setAdd('asignatura', e.target.value)}
+                      placeholder="Nombre de la asignatura"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Clasificación */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Clasificación</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Tipo de asignatura</label>
+                    <select value={addModal.tipoAsignatura} onChange={e => setAdd('tipoAsignatura', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                      <option value="">Seleccionar...</option>
+                      <option value="Disciplinar">Disciplinar</option>
+                      <option value="Electiva">Electiva</option>
+                    </select>
+                  </div>
+                  {addModal.tipoAsignatura === 'Electiva' && (
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 mb-1 block">Nombre electiva</label>
+                      <input type="text" value={addModal.nombreElectiva} onChange={e => setAdd('nombreElectiva', e.target.value)}
+                        placeholder="Nombre de la electiva"
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Prioridad</label>
+                    <select value={addModal.prioridad} onChange={e => setAdd('prioridad', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                      <option value="">Sin especificar</option>
+                      <option value="Prioridad">Prioridad</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Proyecto</label>
+                    <input type="text" value={addModal.proyecto} onChange={e => setAdd('proyecto', e.target.value)}
+                      placeholder="Ej. NOA 2025"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Datos académicos */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Datos académicos</p>
+                <div className="grid grid-cols-4 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Facultad</label>
+                    <input type="text" value={addModal.facultad} onChange={e => setAdd('facultad', e.target.value)}
+                      placeholder="Facultad"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Malla curricular</label>
+                    <select value={addModal.mallaCurricular} onChange={e => setAdd('mallaCurricular', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                      <option value="">Sin especificar</option>
+                      <option value="Nueva">Nueva</option>
+                      <option value="Actual">Actual</option>
+                      <option value="Ambas">Ambas</option>
+                      <option value="Antigua">Antigua</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">¿Tronco común?</label>
+                    <select value={addModal.troncoComun} onChange={e => setAdd('troncoComun', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                      <option value="">Sin especificar</option>
+                      <option value="Sí">Sí</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Fecha prog. producción</label>
+                    <input type="month" value={addModal.fechaProduccion} onChange={e => setAdd('fechaProduccion', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Códigos */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Códigos</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Cód. Pensum</label>
+                    <input type="text" value={addModal.codigoPensum} onChange={e => setAdd('codigoPensum', e.target.value)}
+                      placeholder="Código"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Cód. Programa</label>
+                    <input type="text" value={addModal.codigoPrograma} onChange={e => setAdd('codigoPrograma', e.target.value)}
+                      placeholder="Código"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Cód. Asignatura</label>
+                    <input type="text" value={addModal.codigoAsignatura} onChange={e => setAdd('codigoAsignatura', e.target.value)}
+                      placeholder="Código"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button onClick={() => setAddModal(null)} className="px-5 py-2.5 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+                Cancelar
+              </button>
+              <button
+                onClick={handleAddCourse}
+                disabled={addSaving || !addModal.nivel || !addModal.programa || addModal.programa === '__nuevo__' || !addModal.asignatura.trim()}
+                className="px-6 py-2.5 text-sm font-semibold bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {addSaving ? 'Guardando...' : 'Agregar curso'}
+              </button>
+            </div>
+          </div>
+        ) : (
+        <>
         {/* Filters (shared between tabs) */}
         <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4 flex flex-wrap gap-3 items-center">
           <input
@@ -615,6 +816,8 @@ export default function CoordinadorPage() {
             )}
           </>
         )}
+        </>
+        )}
       </main>
 
       {/* Modal asignación */}
@@ -676,196 +879,6 @@ export default function CoordinadorPage() {
         </div>
       )}
 
-      {/* Modal agregar curso */}
-      {addModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={e => { if (e.target === e.currentTarget) setAddModal(null); }}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]">
-            {/* Header fijo */}
-            <div className="px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
-              <h3 className="font-bold text-gray-900 text-base">Agregar nuevo curso</h3>
-              <p className="text-xs text-gray-400 mt-0.5">Se guardará con estado &quot;No empezado&quot;. Campos con * son obligatorios.</p>
-            </div>
-
-            {/* Cuerpo scrollable */}
-            <div className="overflow-y-auto px-6 py-4 space-y-5 flex-1">
-
-              {/* Sección: Identificación */}
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Identificación</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Nivel *</label>
-                  <select value={addModal.nivel} onChange={e => handleAddNivelChange(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                    <option value="">Seleccionar...</option>
-                    {niveles.map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Modalidad</label>
-                  <select value={addModal.modalidad} onChange={e => setAdd('modalidad', e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                    <option value="">Sin especificar</option>
-                    {opcionesModalidad.map(md => <option key={md} value={md}>{md}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">Programa *</label>
-                {addPrograms.length > 0 ? (
-                  <select value={addModal.programa} onChange={e => setAdd('programa', e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                    <option value="">Seleccionar programa...</option>
-                    {addPrograms.map(p => <option key={p} value={p}>{p}</option>)}
-                    <option value="__nuevo__">Otro (escribir manualmente)</option>
-                  </select>
-                ) : (
-                  <input type="text" value={addModal.programa} onChange={e => setAdd('programa', e.target.value)}
-                    placeholder={addModal.nivel ? 'Nombre del programa' : 'Selecciona el nivel primero'}
-                    disabled={!addModal.nivel}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-50 disabled:text-gray-400" />
-                )}
-                {addModal.programa === '__nuevo__' && (
-                  <input type="text" autoFocus placeholder="Nombre del nuevo programa"
-                    onChange={e => setAdd('programa', e.target.value)}
-                    className="w-full mt-2 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                )}
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">Asignatura *</label>
-                <input type="text" value={addModal.asignatura} onChange={e => setAdd('asignatura', e.target.value)}
-                  placeholder="Nombre de la asignatura"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-              </div>
-
-              {/* Sección: Clasificación */}
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pt-1">Clasificación</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Tipo de asignatura</label>
-                  <select value={addModal.tipoAsignatura} onChange={e => setAdd('tipoAsignatura', e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                    <option value="">Seleccionar...</option>
-                    <option value="Disciplinar">Disciplinar</option>
-                    <option value="Electiva">Electiva</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Semestre</label>
-                  <input type="number" min={1} max={12} value={addModal.semestre} onChange={e => setAdd('semestre', e.target.value)}
-                    placeholder="Ej. 3"
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                </div>
-              </div>
-
-              {addModal.tipoAsignatura === 'Electiva' && (
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Nombre electiva</label>
-                  <input type="text" value={addModal.nombreElectiva} onChange={e => setAdd('nombreElectiva', e.target.value)}
-                    placeholder="Nombre de la electiva"
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                </div>
-              )}
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Prioridad</label>
-                  <select value={addModal.prioridad} onChange={e => setAdd('prioridad', e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                    <option value="">Sin especificar</option>
-                    <option value="Prioridad">Prioridad</option>
-                    <option value="No">No</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Proyecto</label>
-                  <input type="text" value={addModal.proyecto} onChange={e => setAdd('proyecto', e.target.value)}
-                    placeholder="Ej. NOA 2025"
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                </div>
-              </div>
-
-              {/* Sección: Datos académicos */}
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pt-1">Datos académicos</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Facultad</label>
-                  <input type="text" value={addModal.facultad} onChange={e => setAdd('facultad', e.target.value)}
-                    placeholder="Facultad"
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Malla curricular</label>
-                  <select value={addModal.mallaCurricular} onChange={e => setAdd('mallaCurricular', e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                    <option value="">Sin especificar</option>
-                    <option value="Nueva">Nueva</option>
-                    <option value="Actual">Actual</option>
-                    <option value="Ambas">Ambas</option>
-                    <option value="Antigua">Antigua</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">¿Tronco común?</label>
-                  <select value={addModal.troncoComun} onChange={e => setAdd('troncoComun', e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                    <option value="">Sin especificar</option>
-                    <option value="Sí">Sí</option>
-                    <option value="No">No</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Fecha prog. producción</label>
-                  <input type="month" value={addModal.fechaProduccion} onChange={e => setAdd('fechaProduccion', e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                </div>
-              </div>
-
-              {/* Sección: Códigos */}
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pt-1">Códigos</p>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Cód. Pensum</label>
-                  <input type="text" value={addModal.codigoPensum} onChange={e => setAdd('codigoPensum', e.target.value)}
-                    placeholder="Código"
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Cód. Programa</label>
-                  <input type="text" value={addModal.codigoPrograma} onChange={e => setAdd('codigoPrograma', e.target.value)}
-                    placeholder="Código"
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Cód. Asignatura</label>
-                  <input type="text" value={addModal.codigoAsignatura} onChange={e => setAdd('codigoAsignatura', e.target.value)}
-                    placeholder="Código"
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                </div>
-              </div>
-
-            </div>
-
-            {/* Footer fijo */}
-            <div className="px-6 py-4 border-t border-gray-100 flex gap-2 shrink-0">
-              <button onClick={() => setAddModal(null)} className="flex-1 py-2.5 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
-                Cancelar
-              </button>
-              <button
-                onClick={handleAddCourse}
-                disabled={addSaving || !addModal.nivel || !addModal.programa || addModal.programa === '__nuevo__' || !addModal.asignatura.trim()}
-                className="flex-1 py-2.5 text-sm font-semibold bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {addSaving ? 'Guardando...' : 'Agregar curso'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Modal seguimiento */}
       {tracking && (() => {
