@@ -648,8 +648,8 @@ export default function CoordinadorPage() {
             {activeTab === 'todos' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[950px]">
-                    <div className="grid grid-cols-[65px_130px_90px_1fr_38px_110px_115px_140px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                  <div className="min-w-[1100px]">
+                    <div className="grid grid-cols-[130px_210px_90px_1fr_38px_110px_115px_140px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Modalidad</span>
@@ -670,10 +670,10 @@ export default function CoordinadorPage() {
                         return (
                           <div
                             key={i}
-                            className={`grid grid-cols-[65px_130px_90px_1fr_38px_110px_115px_140px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}
+                            className={`grid grid-cols-[130px_210px_90px_1fr_38px_110px_115px_140px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}
                           >
-                            <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
-                            <span className="text-xs text-gray-500 truncate">{c._programa}</span>
+                            <span className="text-xs text-gray-400">{c._nivel}</span>
+                            <span className="text-xs text-gray-500">{c._programa}</span>
                             <span className="text-xs text-gray-400 truncate">{c._modalidad || '—'}</span>
                             <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                               {priority && (
@@ -723,8 +723,8 @@ export default function CoordinadorPage() {
             {activeTab === 'asignar' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[800px]">
-                    <div className="grid grid-cols-[65px_125px_85px_1fr_38px_130px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                  <div className="min-w-[1050px]">
+                    <div className="grid grid-cols-[130px_210px_85px_1fr_38px_130px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Modalidad</span>
@@ -744,10 +744,10 @@ export default function CoordinadorPage() {
                         return (
                           <div
                             key={i}
-                            className={`grid grid-cols-[65px_125px_85px_1fr_38px_130px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/40' : ''}`}
+                            className={`grid grid-cols-[130px_210px_85px_1fr_38px_130px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/40' : ''}`}
                           >
-                            <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
-                            <span className="text-xs text-gray-500 truncate">{c._programa}</span>
+                            <span className="text-xs text-gray-400">{c._nivel}</span>
+                            <span className="text-xs text-gray-500">{c._programa}</span>
                             <span className="text-xs text-gray-400 truncate">{c._modalidad || '—'}</span>
                             <div className="flex items-center gap-1.5 min-w-0">
                               {priority && <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>}
@@ -780,8 +780,8 @@ export default function CoordinadorPage() {
             {activeTab === 'devueltos' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[870px]">
-                    <div className="grid grid-cols-[65px_150px_1fr_130px_70px_150px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                  <div className="min-w-[1050px]">
+                    <div className="grid grid-cols-[130px_210px_1fr_130px_70px_150px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
@@ -798,9 +798,9 @@ export default function CoordinadorPage() {
                       ) : devueltos.map((c, i) => {
                         const dDV = diasDesde(parseDate(c['Fecha fin revisión DI']));
                         return (
-                          <div key={i} className="grid grid-cols-[65px_150px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
-                            <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
-                            <span className="text-xs text-gray-500 truncate">{c._programa}</span>
+                          <div key={i} className="grid grid-cols-[130px_210px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
+                            <span className="text-xs text-gray-400">{c._nivel}</span>
+                            <span className="text-xs text-gray-500">{c._programa}</span>
                             <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
                             <span className="text-xs text-gray-500 truncate">{gestorActual(c) || '—'}</span>
                             <span className={`text-xs ${diasClass(dDV)}`}>{diasBadge(dDV)}</span>
