@@ -22,6 +22,7 @@ interface CourseRow {
   Prioridad?: string;
   PRIORIDAD?: string;
   Semestre?: string | number;
+  'Nombre electiva'?: string;
 }
 
 function isPriority(c: CourseRow): boolean {
@@ -342,9 +343,12 @@ export default function AdminPage() {
                           <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
                           <span className="text-xs text-gray-500 truncate" title={c._programa}>{c._programa}</span>
                           <span className="text-xs text-gray-400 truncate">{c._modalidad || '—'}</span>
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            {isPriority(c) && <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">P</span>}
-                            <span className="text-sm font-medium text-gray-900 truncate">{String(c.Asignatura)}</span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              {isPriority(c) && <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">P</span>}
+                              <span className="text-sm font-medium text-gray-900 truncate">{String(c.Asignatura)}</span>
+                            </div>
+                            {(() => { const ne = String(c['Nombre electiva'] ?? '').trim(); return ne && ne.toLowerCase() !== 'no aplica' ? <p className="text-xs text-indigo-500 mt-0.5 truncate">{ne}</p> : null; })()}
                           </div>
                           <div>
                             {estado ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${STATE_COLORS[estado] || 'bg-gray-100 text-gray-600'}`}>{estado}</span> : <span className="text-xs text-gray-300">—</span>}

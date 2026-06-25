@@ -29,6 +29,7 @@ interface Curso {
   'DI responsable'?: string;
   'DI Responsable'?: string;
   'DI responsable '?: string;
+  'Nombre electiva'?: string;
 }
 
 type TabId = 'todos' | 'asignar' | 'devueltos';
@@ -158,7 +159,14 @@ export default function CoordinadorPage() {
   const gestorActual = (c: Curso) =>
     String(c['Gestor asignado'] ?? c['Gestor responsable '] ?? c['Gestor responsable'] ?? '').trim();
   const linkActual = (c: Curso) => String(c['Link'] ?? '').trim();
-  const key = (c: Curso) => `${c._nivel}::${c._programa}::${c.Asignatura}`;
+  const nombreElectiva = (c: Curso) => {
+    const ne = String(c['Nombre electiva'] ?? '').trim();
+    return ne && ne.toLowerCase() !== 'no aplica' ? ne : '';
+  };
+  const key = (c: Curso) => {
+    const ne = nombreElectiva(c);
+    return ne ? `${c._nivel}::${c._programa}::${c.Asignatura}::${ne}` : `${c._nivel}::${c._programa}::${c.Asignatura}`;
+  };
 
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const applyFilters = (list: Curso[]) => list.filter(c => {
@@ -730,13 +738,18 @@ export default function CoordinadorPage() {
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500">{c._programa}</span>
                             <span className="text-xs text-gray-400 truncate">{c._modalidad || '—'}</span>
-                            <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                              {priority && (
-                                <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">
-                                  Prioridad
-                                </span>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {priority && (
+                                  <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">
+                                    Prioridad
+                                  </span>
+                                )}
+                                <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                              </div>
+                              {nombreElectiva(c) && (
+                                <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>
                               )}
-                              <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
                             </div>
                             <span className="text-xs text-gray-400 text-center">{c.Semestre || '—'}</span>
                             {/* Botón seguimiento */}
@@ -851,9 +864,14 @@ export default function CoordinadorPage() {
                               <span className="text-xs text-gray-400">{c._nivel}</span>
                               <span className="text-xs text-gray-500">{c._programa}</span>
                               <span className="text-xs text-gray-400 truncate">{c._modalidad || '—'}</span>
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                {priority && <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>}
-                                <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  {priority && <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>}
+                                  <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                                </div>
+                                {nombreElectiva(c) && (
+                                  <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>
+                                )}
                               </div>
                               <span className="text-xs text-gray-400 text-center">{c.Semestre || '—'}</span>
                               {actual ? (
@@ -904,7 +922,10 @@ export default function CoordinadorPage() {
                           <div key={i} className="grid grid-cols-[130px_210px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500">{c._programa}</span>
-                            <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                            <div className="min-w-0">
+                              <span className="text-sm font-medium text-gray-900 truncate block">{c.Asignatura}</span>
+                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
+                            </div>
                             <span className="text-xs text-gray-500 truncate">{gestorActual(c) || '—'}</span>
                             <span className={`text-xs ${diasClass(dDV)}`}>{diasBadge(dDV)}</span>
                             <span className="text-xs text-gray-500 truncate">{diActual(c) || '—'}</span>

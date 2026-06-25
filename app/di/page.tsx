@@ -26,6 +26,7 @@ interface Curso {
   'Fin Gestor'?: string;
   'Fecha fin revisión DI'?: string;
   Semestre?: string | number;
+  'Nombre electiva'?: string;
 }
 
 type TabId = 'pendientes' | 'aprobados' | 'devueltos';
@@ -337,6 +338,7 @@ export default function DIPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       {isPriority(c) && <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>}
                       <p className="text-sm font-medium text-gray-900">{c.Asignatura}</p>
+                      {(() => { const ne = String(c['Nombre electiva'] ?? '').trim(); return ne && ne.toLowerCase() !== 'no aplica' ? <p className="text-xs text-indigo-500 mt-0.5">{ne}</p> : null; })()}
                       </div>
                     <p className="text-xs text-gray-400 mt-0.5">Gestor: {gestor(c)}</p>
                     <div className="flex gap-3 mt-1">
