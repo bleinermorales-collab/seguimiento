@@ -224,7 +224,7 @@ export default function CoordinadorPage() {
   };
 
   const niveles = ['Pregrado', 'Especializaciones', 'Maestrías', 'Doctorado'];
-  const modalidades = ['Presencial', 'Virtual', 'Ambas'];
+  const opcionesModalidad = ['Presencial', 'Virtual', 'Ambas'];
 
   const [gestores, setGestores] = useState<string[]>([]);
   useEffect(() => {
@@ -705,7 +705,7 @@ export default function CoordinadorPage() {
                   <select value={addModal.modalidad} onChange={e => setAdd('modalidad', e.target.value)}
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
                     <option value="">Sin especificar</option>
-                    {modalidades.map(md => <option key={md} value={md}>{md}</option>)}
+                    {opcionesModalidad.map(md => <option key={md} value={md}>{md}</option>)}
                   </select>
                 </div>
               </div>

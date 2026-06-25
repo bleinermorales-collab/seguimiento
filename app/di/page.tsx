@@ -25,6 +25,7 @@ interface Curso {
   'Estado de la revalidación DI'?: string;
   'Fin Gestor'?: string;
   'Fecha fin revisión DI'?: string;
+  Semestre?: string | number;
 }
 
 type TabId = 'pendientes' | 'aprobados' | 'devueltos';
@@ -61,6 +62,7 @@ export default function DIPage() {
   const [filterEstado, setFilterEstado] = useState('');
   const [filterModalidad, setFilterModalidad] = useState('');
   const [filterSemestre, setFilterSemestre] = useState('');
+  const [search, setSearch] = useState('');
   const [pendingAction, setPendingAction] = useState<{ curso: Curso; actionId: ActionId; obs: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [messages, setMessages] = useState<{ id: string; type: 'success' | 'error'; text: string }[]>([]);
@@ -158,10 +160,16 @@ export default function DIPage() {
     });
   }
 
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const cursosNivel = cursos
     .filter(c => !nivelFilter || c._nivel === nivelFilter)
     .filter(c => !filterModalidad || String(c._modalidad ?? '').trim() === filterModalidad)
-    .filter(c => !filterSemestre || String(c.Semestre ?? '').trim() === filterSemestre);
+    .filter(c => !filterSemestre || String(c.Semestre ?? '').trim() === filterSemestre)
+    .filter(c => {
+      if (!search) return true;
+      const q = norm(search);
+      return norm(c.Asignatura ?? '').includes(q) || norm(c._programa ?? '').includes(q);
+    });
   const modalidades = [...new Set(cursos.map(c => String(c._modalidad ?? '')).filter(Boolean))].sort();
   const semestres = [...new Set(cursos.map(c => String(c.Semestre ?? '')).filter(s => !!s && s !== 'null'))].sort((a, b) => (+a || 0) - (+b || 0));
   const pendientes = sortByDate(cursosNivel.filter(c => {
@@ -206,31 +214,27 @@ export default function DIPage() {
           </button>
         </div>
 
-        {/* Tabs + filtro nivel */}
+        {/* Filters + Tabs */}
         <div className="max-w-5xl mx-auto px-4">
-          <div className="flex items-center justify-between gap-3 mb-2 pt-1">
-            <div className="flex gap-0 -mb-px overflow-x-auto">
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
-                    activeTab === tab.id ? tab.activeColor : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {tab.label}
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
-                    activeTab === tab.id ? tab.color : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
-            </div>
+          {/* Search bar */}
+          <div className="relative pt-2 pb-1">
+            <svg className="absolute left-3 top-1/2 -translate-y-0.5 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por asignatura o programa..."
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-violet-400"
+            />
+          </div>
+          {/* Filters row */}
+          <div className="flex flex-wrap items-center gap-2 pb-2">
             <select
               value={nivelFilter}
               onChange={e => setNivelFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400 shrink-0"
+              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400"
             >
               <option value="">Todos los niveles</option>
               <option value="Pregrado">Pregrado</option>
@@ -241,7 +245,7 @@ export default function DIPage() {
             <select
               value={filterEstado}
               onChange={e => setFilterEstado(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400 shrink-0"
+              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400"
             >
               <option value="">Todos los estados</option>
               {['En proceso', 'En revisión', 'Aprobado DI', 'Corrección', 'Cargado', 'Producido', 'No empezado'].map(e => (
@@ -251,7 +255,7 @@ export default function DIPage() {
             <select
               value={filterModalidad}
               onChange={e => setFilterModalidad(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400 shrink-0"
+              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400"
             >
               <option value="">Todas las modalidades</option>
               {modalidades.map(m => <option key={m} value={m}>{m}</option>)}
@@ -259,11 +263,30 @@ export default function DIPage() {
             <select
               value={filterSemestre}
               onChange={e => setFilterSemestre(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400 shrink-0"
+              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400"
             >
               <option value="">Todos los semestres</option>
               {semestres.map(s => <option key={s} value={s}>Semestre {s}</option>)}
             </select>
+          </div>
+          {/* Tabs */}
+          <div className="flex gap-0 overflow-x-auto scrollbar-none -mb-px">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                  activeTab === tab.id ? tab.activeColor : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {tab.label}
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+                  activeTab === tab.id ? tab.color : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </header>
