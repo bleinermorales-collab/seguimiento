@@ -26,6 +26,7 @@ interface Curso {
   'Fin Gestor'?: string;
   'Fecha de asignación'?: string;
   'Fecha fin revisión DI'?: string;
+  'Nombre electiva'?: string;
 }
 
 type TabId = 'por_asignar' | 'asignados' | 'devueltos' | 'aprobados';
@@ -152,6 +153,7 @@ export default function CoordinadorDIPage() {
           di: modal.di,
           link: modal.link,
           observaciones: modal.obs,
+          nombreElectiva: String(modal.curso['Nombre electiva'] ?? '').trim() || undefined,
         }),
       });
       const data = await res.json();

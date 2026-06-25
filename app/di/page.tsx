@@ -99,6 +99,7 @@ export default function DIPage() {
           curso: curso.Asignatura,
           estadoId: actionId,
           observaciones: '',
+          nombreElectiva: String(curso['Nombre electiva'] ?? '').trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -128,6 +129,7 @@ export default function DIPage() {
           curso: curso.Asignatura,
           estadoId: actionId,
           observaciones: pendingAction.obs,
+          nombreElectiva: String(curso['Nombre electiva'] ?? '').trim() || undefined,
         }),
       });
       const data = await res.json();

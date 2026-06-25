@@ -163,16 +163,23 @@ export function getCourseInfo(nivel: string, programa: string, asignatura: strin
   );
 }
 
-export function updateCourse(nivel: string, asignatura: string, updates: Record<string, unknown>, programa?: string): boolean {
+export function updateCourse(nivel: string, asignatura: string, updates: Record<string, unknown>, programa?: string, nombreElectiva?: string): boolean {
   // Use sheet_to_json (same path as readSheet) to find the matching logical row index
   const data = readSheet(nivel);
   const normAsig = normalizeColName(asignatura);
   const normProg = programa ? normalizeColName(programa) : null;
+  const normNE = nombreElectiva ? normalizeColName(nombreElectiva) : null;
 
   const logicalIdx = data.findIndex((r) => {
     const rowAsig = normalizeColName(String(r['Asignatura'] ?? ''));
     const rowProg = normalizeColName(String(r._programa ?? ''));
-    return rowAsig === normAsig && (!normProg || rowProg === normProg);
+    if (rowAsig !== normAsig) return false;
+    if (normProg && rowProg !== normProg) return false;
+    if (normNE) {
+      const rowNE = normalizeColName(String(r['Nombre electiva'] ?? ''));
+      return rowNE === normNE;
+    }
+    return true;
   });
 
   if (logicalIdx === -1) return false;

@@ -166,6 +166,7 @@ export default function GestorPage() {
           curso: curso.Asignatura,
           estadoId: 'inicio_contenido',
           observaciones: '',
+          nombreElectiva: String(curso['Nombre electiva'] ?? '').trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -197,6 +198,7 @@ export default function GestorPage() {
           estadoId: opciones[0].id,
           observaciones: modal.obs,
           link: modal.link || undefined,
+          nombreElectiva: String(modal.curso['Nombre electiva'] ?? '').trim() || undefined,
         }),
       });
       const data = await res.json();

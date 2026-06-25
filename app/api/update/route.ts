@@ -27,9 +27,9 @@ function resolveFromEmail(responsable: string, rol: string): string | undefined 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { rol, responsable, nivel, programa, curso, estadoId, observaciones, link } = body as {
+    const { rol, responsable, nivel, programa, curso, estadoId, observaciones, link, nombreElectiva } = body as {
       rol: string; responsable: string; nivel: string;
-      programa: string; curso: string; estadoId: string; observaciones?: string; link?: string;
+      programa: string; curso: string; estadoId: string; observaciones?: string; link?: string; nombreElectiva?: string;
     };
 
     if (!nivel || !curso || !estadoId) {
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const ok = await updateCourse(nivel, curso, updates, programa);
+    const ok = await updateCourse(nivel, curso, updates, programa, nombreElectiva || undefined);
     if (!ok) {
       return NextResponse.json({ error: `No se encontró el curso "${curso}" en la hoja ${nivel}` }, { status: 404 });
     }

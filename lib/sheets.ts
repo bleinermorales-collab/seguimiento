@@ -171,12 +171,13 @@ export async function updateCourse(
   nivel: string,
   asignatura: string,
   updates: Record<string, unknown>,
-  programa?: string
+  programa?: string,
+  nombreElectiva?: string
 ): Promise<boolean> {
   // 1. Always update the local Excel as backup (wrapped so file errors don't break GS flow)
   let excelOk = false;
   try {
-    excelOk = excel.updateCourse(nivel, asignatura, updates, programa);
+    excelOk = excel.updateCourse(nivel, asignatura, updates, programa, nombreElectiva);
   } catch (err) {
     console.error('[sheets] ❌ Excel local falló (ignorado si GS está disponible):', err);
   }
@@ -184,7 +185,7 @@ export async function updateCourse(
   // 2. Update Google Sheets (the primary database)
   if (hasGoogleCredentials()) {
     try {
-      await updateGoogleSheet(nivel, asignatura, updates, programa);
+      await updateGoogleSheet(nivel, asignatura, updates, programa, nombreElectiva);
       console.log(`[sheets] ✅ Google Sheets actualizado: "${asignatura}" — campos: ${Object.keys(updates).join(', ')}`);
       return true; // Google Sheets is primary — success even if local Excel is out of sync
     } catch (err) {
@@ -201,7 +202,8 @@ async function updateGoogleSheet(
   nivel: string,
   asignatura: string,
   updatesIn: Record<string, unknown>,
-  programa?: string
+  programa?: string,
+  nombreElectiva?: string
 ): Promise<void> {
   // Link fields are local-only — never write them to the Google Sheet
   const updates = Object.fromEntries(
@@ -228,6 +230,8 @@ async function updateGoogleSheet(
 
   const normAsig = normalizeColName(asignatura);
   const normProg = programa ? normalizeColName(programa) : null;
+  const normNE = nombreElectiva ? normalizeColName(nombreElectiva) : null;
+  const nombreElectivaColIdx = normNE ? findColIdx(headers, 'Nombre electiva') : -1;
   let currentPrograma = '';
   let targetRowIdx = -1;
 
@@ -238,8 +242,10 @@ async function updateGoogleSheet(
     }
     if (normalizeColName(row[asignaturaColIdx] ?? '') === normAsig) {
       if (!normProg || normalizeColName(currentPrograma) === normProg) {
-        targetRowIdx = i;
-        break;
+        if (!normNE || (nombreElectivaColIdx >= 0 && normalizeColName(row[nombreElectivaColIdx] ?? '') === normNE)) {
+          targetRowIdx = i;
+          break;
+        }
       }
     }
   }

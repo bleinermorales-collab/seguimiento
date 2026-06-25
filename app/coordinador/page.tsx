@@ -217,6 +217,7 @@ export default function CoordinadorPage() {
           gestor: modal.gestor,
           link: modal.link,
           observaciones: modal.obs,
+          nombreElectiva: nombreElectiva(modal.curso) || undefined,
         }),
       });
       const data = await res.json();
@@ -269,6 +270,7 @@ export default function CoordinadorPage() {
             gestor: bulkModal.gestor,
             link: bulkModal.link,
             observaciones: bulkModal.obs,
+            nombreElectiva: nombreElectiva(curso) || undefined,
           }),
         });
         if (res.ok) {
