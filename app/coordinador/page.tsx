@@ -32,7 +32,7 @@ interface Curso {
   'Nombre electiva'?: string;
 }
 
-type TabId = 'todos' | 'asignar' | 'devueltos';
+type TabId = 'todos' | 'asignar' | 'asignados' | 'devueltos';
 
 function isPriority(c: Curso): boolean {
   const val = String(c['Prioridad'] ?? c['PRIORIDAD'] ?? '').trim();
@@ -132,6 +132,7 @@ export default function CoordinadorPage() {
   const [filterEstado, setFilterEstado] = useState('');
   const [filterModalidad, setFilterModalidad] = useState('');
   const [filterSemestre, setFilterSemestre] = useState('');
+  const [filterGestor, setFilterGestor] = useState('');
   const [saving, setSaving] = useState<string | null>(null);
   const [messages, setMessages] = useState<{ id: string; type: 'success' | 'error'; text: string }[]>([]);
   const [modal, setModal] = useState<{ curso: Curso; gestor: string; link: string; obs: string } | null>(null);
@@ -174,6 +175,7 @@ export default function CoordinadorPage() {
     if (filterEstado && String(c.Estado ?? '').trim() !== filterEstado) return false;
     if (filterModalidad && String(c._modalidad ?? '').trim() !== filterModalidad) return false;
     if (filterSemestre && String(c.Semestre ?? '').trim() !== filterSemestre) return false;
+    if (filterGestor && gestorActual(c) !== filterGestor) return false;
     const q = norm(search);
     if (q && !norm(c.Asignatura ?? '').includes(q) && !norm(c._programa ?? '').includes(q)) return false;
     return true;
@@ -200,6 +202,11 @@ export default function CoordinadorPage() {
   const sinAsignarCount = cursos.filter(isSinIniciar).length;
   const devueltos = sortByDate(applyFilters(cursos.filter(isDevuelto)), getLastStateDate);
   const devueltosTotal = cursos.filter(isDevuelto).length;
+  const asignados = sortByDate(
+    applyFilters(cursos.filter(c => !isSinIniciar(c) && Boolean(gestorActual(c)))),
+    getLastStateDate
+  );
+  const asignadosTotal = cursos.filter(c => !isSinIniciar(c) && Boolean(gestorActual(c))).length;
 
 
   const handleModalConfirm = async () => {
@@ -396,6 +403,23 @@ export default function CoordinadorPage() {
               Por asignar
               <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${activeTab === 'asignar' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>
                 {sinAsignarCount}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('asignados')}
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                activeTab === 'asignados'
+                  ? 'border-emerald-500 text-emerald-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Asignados
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${activeTab === 'asignados' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                {asignadosTotal}
               </span>
             </button>
 
@@ -691,8 +715,21 @@ export default function CoordinadorPage() {
             <option value="">Todos los semestres</option>
             {semestres.map(s => <option key={s} value={s}>Semestre {s}</option>)}
           </select>
+          {activeTab === 'asignados' && (
+            <select
+              value={filterGestor}
+              onChange={e => setFilterGestor(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            >
+              <option value="">Todos los gestores</option>
+              {gestores.map((g: string) => <option key={g} value={g}>{g}</option>)}
+            </select>
+          )}
           <span className="text-xs text-gray-400">
-            {activeTab === 'todos' ? `${todosFiltered.length} cursos` : activeTab === 'devueltos' ? `${devueltos.length} devueltos` : `${sinIniciar.length} sin iniciar`}
+            {activeTab === 'todos' ? `${todosFiltered.length} cursos`
+              : activeTab === 'asignar' ? `${sinIniciar.length} sin iniciar`
+              : activeTab === 'asignados' ? `${asignados.length} asignados`
+              : `${devueltos.length} devueltos`}
           </span>
           <button
             onClick={() => { setAddPrograms([]); setAddModal({ ...EMPTY_ADD }); }}
@@ -897,6 +934,64 @@ export default function CoordinadorPage() {
                   </div>
                 </div>
               </>
+            )}
+
+            {/* ── TAB: ASIGNADOS ── */}
+            {activeTab === 'asignados' && (
+              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <div className="min-w-[1100px]">
+                    <div className="grid grid-cols-[130px_210px_1fr_160px_110px_70px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                      <span>Nivel</span>
+                      <span>Programa</span>
+                      <span>Asignatura</span>
+                      <span>Gestor</span>
+                      <span>Estado</span>
+                      <span>Días</span>
+                      <span>Acción</span>
+                    </div>
+                    <div className="divide-y divide-gray-50">
+                      {asignados.length === 0 ? (
+                        <div className="text-center py-12 text-gray-400 text-sm">
+                          No hay cursos asignados con los filtros actuales.
+                        </div>
+                      ) : asignados.map((c, i) => {
+                        const actual = gestorActual(c);
+                        const priority = isPriority(c);
+                        const estado = String(c.Estado ?? '').trim();
+                        const dias = diasDesde(getLastStateDate(c));
+                        return (
+                          <div key={i} className={`grid grid-cols-[130px_210px_1fr_160px_110px_70px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}>
+                            <span className="text-xs text-gray-400">{c._nivel}</span>
+                            <span className="text-xs text-gray-500 truncate">{c._programa}</span>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {priority && (
+                                  <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>
+                                )}
+                                <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                              </div>
+                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
+                            </div>
+                            <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full truncate border border-emerald-200" title={actual}>{actual}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${ESTADO_BADGE[estado] || 'bg-gray-100 text-gray-600'}`}>{estado}</span>
+                            <span className={`text-xs font-semibold ${diasClass(dias)}`}>{diasBadge(dias)}</span>
+                            <button
+                              onClick={() => setTracking(c)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition whitespace-nowrap"
+                            >
+                              <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              Fechas
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* ── TAB: DEVUELTOS ── */}
