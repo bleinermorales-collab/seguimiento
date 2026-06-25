@@ -85,21 +85,21 @@
   },
   {
     "username": "amendoza",
-    "nombre": "Aimar Mendoza",
-    "email": "aimarmendoza@americana.edu.co",
+    "nombre": "Aimar Mendoza Torres",
+    "email": "aimarmendoza_adm@americana.edu.co",
     "role": "Gestor",
     "active": true
   },
   {
     "username": "cavendano",
-    "nombre": "Caroll Avendaño",
+    "nombre": "Caroll Tatiana Avendaño Peña",
     "email": "avendanocaroll_adm@americana.edu.co",
     "role": "Gestor",
     "active": true
   },
   {
     "username": "nsalas",
-    "nombre": "Nayerlis Salas",
+    "nombre": "Nayerlis Salas Medina",
     "email": "salasnayerlis_adm@americana.edu.co",
     "role": "Gestor",
     "active": true
@@ -190,7 +190,7 @@
   },
   {
     "username": "lizneyr",
-    "nombre": "Lizney Rodrigues",
+    "nombre": "Lizney Rodriguez Movilla",
     "email": "lizneyr@americana.edu.co",
     "role": "Super Admin",
     "active": true

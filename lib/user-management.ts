@@ -27,9 +27,9 @@ const SEED_USERS: DynamicUser[] = [
   { username: 'cnavarro',     nombre: 'Claudia Navarro',                   email: 'navarroclaudia@americana.edu.co',     role: 'Gestor', active: true },
   { username: 'molaciregui',  nombre: 'Martha Olaciregui',                 email: 'molaciregui@americana.edu.co',        role: 'Gestor', active: true },
   { username: 'mpimienta',    nombre: 'Martha Pimienta',                   email: 'mpimienta@americana.edu.co',          role: 'Gestor', active: true },
-  { username: 'amendoza',     nombre: 'Aimar Mendoza',                     email: 'aimarmendoza@americana.edu.co',       role: 'Gestor', active: true },
-  { username: 'cavendano',    nombre: 'Caroll Avendaño',                   email: 'avendanocaroll_adm@americana.edu.co', role: 'Gestor', active: true },
-  { username: 'nsalas',       nombre: 'Nayerlis Salas',                    email: 'salasnayerlis_adm@americana.edu.co',  role: 'Gestor', active: true },
+  { username: 'amendoza',     nombre: 'Aimar Mendoza Torres',              email: 'aimarmendoza_adm@americana.edu.co',   role: 'Gestor', active: true },
+  { username: 'nsalas',       nombre: 'Nayerlis Salas Medina',             email: 'salasnayerlis_adm@americana.edu.co',  role: 'Gestor', active: true },
+  { username: 'cavendano',    nombre: 'Caroll Tatiana Avendaño Peña',      email: 'avendanocaroll_adm@americana.edu.co', role: 'Gestor', active: true },
 
   { username: 'adelariveros', nombre: 'Adela Del Rosario Riveros Flores',  email: 'adelariveros@americana.edu.co',       role: 'Diseñador Instruccional', active: true },
   { username: 'avelandia',    nombre: 'Andrés Felipe Velandia Espitia',    email: 'velandiaandres@americana.edu.co',     role: 'Diseñador Instruccional', active: true },
