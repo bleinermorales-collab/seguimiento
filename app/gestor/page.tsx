@@ -125,6 +125,8 @@ export default function GestorPage() {
   const [activeTab, setActiveTab] = useState<TabId>('todos');
   const [nivelFilter, setNivelFilter] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
+  const [filterModalidad, setFilterModalidad] = useState('');
+  const [filterSemestre, setFilterSemestre] = useState('');
   const [modal, setModal] = useState<{ curso: Curso; tab: TabId; obs: string; link: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [messages, setMessages] = useState<{ id: string; type: 'success' | 'error'; text: string }[]>([]);
@@ -214,7 +216,12 @@ export default function GestorPage() {
     correccion: 0, aprobado: 0, producido: 0, otros: 0,
   };
   const fechaCorreccion = (c: Curso) => String(c['Fecha fin corrección gestor'] ?? c['Fecha fin corrección docente'] ?? '').trim();
-  const cursosNivel = nivelFilter ? cursos.filter(c => c._nivel === nivelFilter) : cursos;
+  const cursosNivel = cursos
+    .filter(c => !nivelFilter || c._nivel === nivelFilter)
+    .filter(c => !filterModalidad || String(c._modalidad ?? '').trim() === filterModalidad)
+    .filter(c => !filterSemestre || String(c.Semestre ?? '').trim() === filterSemestre);
+  const modalidades = [...new Set(cursos.map(c => String(c._modalidad ?? '')).filter(Boolean))].sort();
+  const semestres = [...new Set(cursos.map(c => String(c.Semestre ?? '')).filter(s => !!s && s !== 'null'))].sort((a, b) => (+a || 0) - (+b || 0));
   for (const c of cursosNivel) counts[estadoTab(c.Estado, c['Estado curso'], fechaCorreccion(c))]++;
 
   // Filter by active tab + nivel + estado, then sort priorities first
@@ -283,6 +290,22 @@ export default function GestorPage() {
                 {['En proceso', 'En revisión', 'Aprobado DI', 'Corrección', 'Cargado', 'Producido', 'No empezado'].map(e => (
                   <option key={e} value={e}>{e}</option>
                 ))}
+              </select>
+              <select
+                value={filterModalidad}
+                onChange={e => { setFilterModalidad(e.target.value); setModal(null); }}
+                className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              >
+                <option value="">Todas las modalidades</option>
+                {modalidades.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              <select
+                value={filterSemestre}
+                onChange={e => { setFilterSemestre(e.target.value); setModal(null); }}
+                className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              >
+                <option value="">Todos los semestres</option>
+                {semestres.map(s => <option key={s} value={s}>Semestre {s}</option>)}
               </select>
             </div>
             <div className="flex gap-0 overflow-x-auto scrollbar-none -mb-px">

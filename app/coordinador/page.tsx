@@ -129,6 +129,8 @@ export default function CoordinadorPage() {
   const [search, setSearch] = useState('');
   const [nivelFilter, setNivelFilter] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
+  const [filterModalidad, setFilterModalidad] = useState('');
+  const [filterSemestre, setFilterSemestre] = useState('');
   const [saving, setSaving] = useState<string | null>(null);
   const [messages, setMessages] = useState<{ id: string; type: 'success' | 'error'; text: string }[]>([]);
   const [modal, setModal] = useState<{ curso: Curso; gestor: string; link: string; obs: string } | null>(null);
@@ -159,10 +161,14 @@ export default function CoordinadorPage() {
   const applyFilters = (list: Curso[]) => list.filter(c => {
     if (nivelFilter && c._nivel !== nivelFilter) return false;
     if (filterEstado && String(c.Estado ?? '').trim() !== filterEstado) return false;
+    if (filterModalidad && String(c._modalidad ?? '').trim() !== filterModalidad) return false;
+    if (filterSemestre && String(c.Semestre ?? '').trim() !== filterSemestre) return false;
     const q = norm(search);
     if (q && !norm(c.Asignatura ?? '').includes(q) && !norm(c._programa ?? '').includes(q)) return false;
     return true;
   });
+  const modalidades = [...new Set(cursos.map(c => String(c._modalidad ?? '')).filter(Boolean))].sort();
+  const semestres = [...new Set(cursos.map(c => String(c.Semestre ?? '')).filter(s => !!s && s !== 'null'))].sort((a, b) => (+a || 0) - (+b || 0));
 
   const sortAZ = (l: Curso[]) => [...l].sort((a, b) => String(a.Asignatura ?? '').localeCompare(String(b.Asignatura ?? ''), 'es'));
   const sortByDate = (list: Curso[], getDate: (c: Curso) => Date | null) => [...list].sort((a, b) => {
@@ -402,6 +408,22 @@ export default function CoordinadorPage() {
             {['En proceso', 'En revisión', 'Aprobado DI', 'Corrección', 'Cargado', 'Producido', 'No empezado'].map(e => (
               <option key={e} value={e}>{e}</option>
             ))}
+          </select>
+          <select
+            value={filterModalidad}
+            onChange={e => setFilterModalidad(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+          >
+            <option value="">Todas las modalidades</option>
+            {modalidades.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <select
+            value={filterSemestre}
+            onChange={e => setFilterSemestre(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+          >
+            <option value="">Todos los semestres</option>
+            {semestres.map(s => <option key={s} value={s}>Semestre {s}</option>)}
           </select>
           <span className="text-xs text-gray-400">
             {activeTab === 'todos' ? `${todosFiltered.length} cursos` : activeTab === 'devueltos' ? `${devueltos.length} devueltos` : `${sinIniciar.length} sin iniciar`}

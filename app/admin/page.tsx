@@ -21,6 +21,7 @@ interface CourseRow {
   'Fecha fin revisión DI'?: string;
   Prioridad?: string;
   PRIORIDAD?: string;
+  Semestre?: string | number;
 }
 
 function isPriority(c: CourseRow): boolean {
@@ -103,6 +104,8 @@ export default function AdminPage() {
   const [search, setSearch] = useState('');
   const [filterNivel, setFilterNivel] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
+  const [filterModalidad, setFilterModalidad] = useState('');
+  const [filterSemestre, setFilterSemestre] = useState('');
 
   // Users management
   const [users, setUsers] = useState<UserInfo[]>([]);
@@ -153,10 +156,16 @@ export default function AdminPage() {
   }
 
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const modalidades = [...new Set(courses.map(c => String(c._modalidad ?? '')).filter(Boolean))].sort();
+  const semestres = [...new Set(courses.map(c => String(c.Semestre ?? '')).filter(s => !!s && s !== 'null'))].sort((a, b) => (+a || 0) - (+b || 0));
   const filtered = sortPriorityDate(courses.filter(c => {
     const q = norm(search);
     const matchSearch = !search || norm(String(c.Asignatura || '')).includes(q) || norm(String(c._programa || '')).includes(q);
-    return matchSearch && (!filterNivel || c._nivel === filterNivel) && (!filterEstado || c.Estado === filterEstado);
+    return matchSearch &&
+      (!filterNivel || c._nivel === filterNivel) &&
+      (!filterEstado || c.Estado === filterEstado) &&
+      (!filterModalidad || String(c._modalidad ?? '').trim() === filterModalidad) &&
+      (!filterSemestre || String(c.Semestre ?? '').trim() === filterSemestre);
   }));
 
   const gestor = (c: CourseRow) => (c['Gestor responsable '] || c['Gestor responsable'] || '—').toString().trim();
@@ -299,6 +308,14 @@ export default function AdminPage() {
               <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Todos los estados</option>
                 {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
+              </select>
+              <select value={filterModalidad} onChange={e => setFilterModalidad(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Todas las modalidades</option>
+                {modalidades.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              <select value={filterSemestre} onChange={e => setFilterSemestre(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Todos los semestres</option>
+                {semestres.map(s => <option key={s} value={s}>Semestre {s}</option>)}
               </select>
             </div>
 
