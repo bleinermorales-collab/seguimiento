@@ -227,6 +227,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       return Math.floor((now.getTime() - d.getTime()) / 86400000) <= 30;
     }).length;
     const aprobadosSemana = (recent / 4.3).toFixed(1);
+    const aprobadosDia = (recent / 30).toFixed(1);
 
     const recentEnviados = courses.filter(c => {
       const d = parseDate(c['Fin Gestor']);
@@ -250,7 +251,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       nivelStats,
       prioAll: prioAll.length, prioAprobados, prioRevision, prioCorreccion, prioNoIniciados,
       prioByNivel,
-      aprobadosSemana, tasaDirecta, enviadosSemana,
+      aprobadosSemana, aprobadosDia, tasaDirecta, enviadosSemana,
     };
   }, [courses]);
 
@@ -296,20 +297,20 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
         <Card title="Vista rápida">
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-cyan-600">{s.aprobadosSemana}</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Cursos<br />aprobados/semana</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-green-600">{s.tasaDirecta}%</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Tasa aprobación<br />directa</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-blue-600">{s.enRevision}</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">En revisión<br />actualmente</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
               <p className="text-2xl font-bold text-violet-600">{s.enviadosSemana}</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Cursos enviados<br />a revisión/semana</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Enviados a<br />revisión/semana</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-2xl font-bold text-cyan-600">{s.aprobadosSemana}</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Aprobados<br />por semana</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-2xl font-bold text-green-600">{s.aprobadosDia}</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Aprobados<br />por día (prom.)</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-2xl font-bold text-indigo-600">{s.tasaDirecta}%</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Tasa aprobación<br />directa</p>
             </div>
           </div>
 
