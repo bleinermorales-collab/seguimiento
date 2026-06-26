@@ -231,9 +231,6 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     const approvedDirect = courses.filter(c => isAprobado(c) && !parseDate(c['Fecha fin corrección gestor'])).length;
     const tasaDirecta = approvedCount > 0 ? Math.round((approvedDirect / approvedCount) * 100) : 0;
 
-    // Top 5 prioridad pendientes
-    const top5 = courses.filter(c => isPriority(c) && !isAprobado(c)).slice(0, 5);
-
     return {
       total, aprobados, enRevision, enCorreccion, noIniciados, producidos, cargados,
       asignados, iniciados, conDI,
@@ -247,7 +244,6 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       prioAll: prioAll.length, prioAprobados, prioRevision, prioCorreccion, prioNoIniciados,
       prioByNivel,
       aprobadosSemana, tasaDirecta,
-      top5,
     };
   }, [courses]);
 
@@ -289,22 +285,46 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       {/* ── Row 2 ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        {/* Distribución por nivel */}
-        <Card title="Distribución por nivel y estado">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            {s.nivelStats.map(n => (
-              <div key={n.nivel}>
-                <p className="text-xs font-bold mb-2" style={{ color: NIVEL_COLORS[n.nivel] }}>
-                  {NIVEL_SHORT[n.nivel]} {n.total}
-                </p>
-                <div className="space-y-1 text-[11px]">
-                  <div className="flex justify-between text-gray-500"><span>Aprobado</span><span className="text-green-600 font-semibold">{n.aprobado}</span></div>
-                  <div className="flex justify-between text-gray-500"><span>En revisión</span><span className="text-blue-600 font-semibold">{n.enRevision}</span></div>
-                  <div className="flex justify-between text-gray-500"><span>Corrección</span><span className="text-orange-600 font-semibold">{n.correccion}</span></div>
-                  <div className="flex justify-between text-gray-500"><span>No iniciado</span><span className="text-gray-700 font-semibold">{n.noIniciado}</span></div>
+        {/* Vista rápida */}
+        <Card title="Vista rápida">
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-2xl font-bold text-cyan-600">{s.aprobadosSemana}</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Cursos<br />aprobados/semana</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-2xl font-bold text-green-600">{s.tasaDirecta}%</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Tasa aprobación<br />directa</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-2xl font-bold text-blue-600">{s.enRevision}</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">En revisión<br />actualmente</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-2xl font-bold text-orange-600">{s.enCorreccion}</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">En corrección<br />actualmente</p>
+            </div>
+          </div>
+
+          {/* Donut */}
+          <div className="flex items-center gap-4">
+            <DonutChart segs={donutSegs} total={s.total} />
+            <div className="space-y-1 text-[10px]">
+              {[
+                { color: '#22c55e', label: 'Aprobados',    val: s.aprobados },
+                { color: '#3b82f6', label: 'En revisión',  val: s.enRevision },
+                { color: '#f97316', label: 'Corrección',   val: s.enCorreccion },
+                { color: '#ef4444', label: 'No iniciados', val: s.noIniciados },
+                { color: '#a855f7', label: 'Producidos',   val: s.producidos },
+                { color: '#06b6d4', label: 'Cargados',     val: s.cargados },
+              ].map(seg => (
+                <div key={seg.label} className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
+                  <span className="text-gray-500">{seg.label}</span>
+                  <span className="font-bold ml-auto pl-2" style={{ color: seg.color }}>{s.total > 0 ? Math.round(seg.val / s.total * 100) : 0}%</span>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </Card>
 
@@ -467,71 +487,22 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           </div>
         </Card>
 
-        {/* Vista rápida + top prioritarios */}
-        <Card title="Vista rápida">
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-cyan-600">{s.aprobadosSemana}</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Cursos<br />aprobados/semana</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-green-600">{s.tasaDirecta}%</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Tasa aprobación<br />directa</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-blue-600">{s.enRevision}</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">En revisión<br />actualmente</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-orange-600">{s.enCorreccion}</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">En corrección<br />actualmente</p>
-            </div>
-          </div>
-
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Top 5 prioritarios pendientes</p>
-          {s.top5.length === 0 ? (
-            <p className="text-xs text-gray-400 text-center py-3">Sin cursos prioritarios pendientes</p>
-          ) : (
-            <div className="space-y-1.5">
-              {s.top5.map((c, i) => {
-                const estado = String(c.Estado ?? '').trim();
-                const estadoColor = estado === 'En revisión' || estado === 'Enviado a revisión' ? '#2563eb' :
-                  estado === 'Corrección' ? '#ea580c' : estado === 'En proceso' ? '#6366f1' : '#9ca3af';
-                return (
-                  <div key={i} className="flex items-start gap-2 bg-gray-50 rounded-lg px-2.5 py-2 border border-gray-100">
-                    <span className="text-[10px] font-bold text-violet-500 mt-0.5 shrink-0">{i + 1}</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-medium text-gray-800 truncate">{String(c.Asignatura)}</p>
-                      <p className="text-[10px] text-gray-400 truncate">{NIVEL_SHORT[c._nivel] ?? c._nivel}</p>
-                    </div>
-                    <span className="text-[10px] font-semibold shrink-0 mt-0.5" style={{ color: estadoColor }}>
-                      {estado || '—'}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Donut */}
-          <div className="mt-4 flex items-center gap-4">
-            <DonutChart segs={donutSegs} total={s.total} />
-            <div className="space-y-1 text-[10px]">
-              {[
-                { color: '#22c55e', label: 'Aprobados',   val: s.aprobados },
-                { color: '#3b82f6', label: 'En revisión', val: s.enRevision },
-                { color: '#f97316', label: 'Corrección',  val: s.enCorreccion },
-                { color: '#ef4444', label: 'No iniciados',val: s.noIniciados },
-                { color: '#a855f7', label: 'Producidos',  val: s.producidos },
-                { color: '#06b6d4', label: 'Cargados',    val: s.cargados },
-              ].map(seg => (
-                <div key={seg.label} className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
-                  <span className="text-gray-500">{seg.label}</span>
-                  <span className="font-bold ml-auto pl-2" style={{ color: seg.color }}>{s.total > 0 ? Math.round(seg.val / s.total * 100) : 0}%</span>
+        {/* Distribución por nivel */}
+        <Card title="Distribución por nivel y estado">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            {s.nivelStats.map(n => (
+              <div key={n.nivel}>
+                <p className="text-xs font-bold mb-2" style={{ color: NIVEL_COLORS[n.nivel] }}>
+                  {NIVEL_SHORT[n.nivel]} {n.total}
+                </p>
+                <div className="space-y-1 text-[11px]">
+                  <div className="flex justify-between text-gray-500"><span>Aprobado</span><span className="text-green-600 font-semibold">{n.aprobado}</span></div>
+                  <div className="flex justify-between text-gray-500"><span>En revisión</span><span className="text-blue-600 font-semibold">{n.enRevision}</span></div>
+                  <div className="flex justify-between text-gray-500"><span>Corrección</span><span className="text-orange-600 font-semibold">{n.correccion}</span></div>
+                  <div className="flex justify-between text-gray-500"><span>No iniciado</span><span className="text-gray-700 font-semibold">{n.noIniciado}</span></div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </Card>
       </div>
