@@ -332,9 +332,9 @@ export default function DIPage() {
               return (
                 <div key={i} className="grid gap-0 items-center px-5 py-3.5 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 grid-cols-[1fr_1fr_2fr_auto]">
                   <span className="text-sm text-gray-500">{c._nivel}</span>
-                  <div className="min-w-0 pr-4">
-                    <p className="text-sm text-gray-600 truncate">{c._programa}</p>
-                    {c._modalidad && <p className="text-xs text-gray-400 truncate italic">{c._modalidad}</p>}
+                  <div className="pr-4">
+                    <p className="text-sm text-gray-600">{c._programa}</p>
+                    {c._modalidad && <p className="text-xs text-gray-400 italic">{c._modalidad}</p>}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
