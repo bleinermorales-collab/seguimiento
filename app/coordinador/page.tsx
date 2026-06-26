@@ -194,19 +194,20 @@ export default function CoordinadorPage() {
   // Tab "Todos": oldest state change first
   const todosFiltered = sortByDate(applyFilters(cursos), getLastStateDate);
 
-  // Tab "Por asignar": sin iniciar, priority first then alphabetical (no dates)
+  // Tab "Por asignar": sin iniciar Y sin gestor asignado
   const sinIniciar = [
-    ...sortAZ(applyFilters(cursos.filter(isSinIniciar)).filter(isPriority)),
-    ...sortAZ(applyFilters(cursos.filter(isSinIniciar)).filter(c => !isPriority(c))),
+    ...sortAZ(applyFilters(cursos.filter(c => isSinIniciar(c) && !gestorActual(c))).filter(isPriority)),
+    ...sortAZ(applyFilters(cursos.filter(c => isSinIniciar(c) && !gestorActual(c))).filter(c => !isPriority(c))),
   ];
-  const sinAsignarCount = cursos.filter(isSinIniciar).length;
+  const sinAsignarCount = cursos.filter(c => isSinIniciar(c) && !gestorActual(c)).length;
   const devueltos = sortByDate(applyFilters(cursos.filter(isDevuelto)), getLastStateDate);
   const devueltosTotal = cursos.filter(isDevuelto).length;
+  // Tab "Asignados": todos los cursos con gestor asignado (cualquier estado)
   const asignados = sortByDate(
-    applyFilters(cursos.filter(c => !isSinIniciar(c) && Boolean(gestorActual(c)))),
+    applyFilters(cursos.filter(c => Boolean(gestorActual(c)))),
     getLastStateDate
   );
-  const asignadosTotal = cursos.filter(c => !isSinIniciar(c) && Boolean(gestorActual(c))).length;
+  const asignadosTotal = cursos.filter(c => Boolean(gestorActual(c))).length;
 
 
   const handleModalConfirm = async () => {
@@ -235,6 +236,7 @@ export default function CoordinadorPage() {
       const action = gestorActual(modal.curso) ? 'Reasignado' : 'Asignado';
       setMessages(m => [...m, { id: Date.now().toString(), type: 'success', text: `${action} "${modal.curso.Asignatura}" → ${modal.gestor}` }]);
       setModal(null);
+      setActiveTab('asignados');
     } catch (err) {
       setMessages(m => [...m, { id: Date.now().toString(), type: 'error', text: err instanceof Error ? err.message : 'Error' }]);
     } finally {
@@ -293,6 +295,7 @@ export default function CoordinadorPage() {
     setSelectedKeys(new Set());
     setBulkModal(null);
     setBulkSaving(false);
+    if (ok > 0) setActiveTab('asignados');
   };
 
   const niveles = ['Pregrado', 'Especializaciones', 'Maestrías', 'Doctorado'];
