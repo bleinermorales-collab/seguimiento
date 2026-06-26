@@ -20,6 +20,7 @@ export interface CourseRow {
   'Fecha fin corrección gestor'?: string;
   Prioridad?: string;
   PRIORIDAD?: string;
+  'Nombre electiva'?: string;
 }
 
 function parseDate(s: unknown): Date | null {
@@ -568,7 +569,10 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
                 <tbody className="divide-y divide-gray-50">
                   {s.prioNoIniciadosList.map((c, i) => (
                     <tr key={i} className="hover:bg-red-50/30">
-                      <td className="px-4 py-2.5 font-medium text-gray-900 text-xs">{c.Asignatura}</td>
+                      <td className="px-4 py-2.5 text-xs">
+                        <span className="font-medium text-gray-900">{c.Asignatura}</span>
+                        {(() => { const ne = String(c['Nombre electiva'] ?? '').trim(); return ne && ne.toLowerCase() !== 'no aplica' ? <p className="text-indigo-500 mt-0.5">{ne}</p> : null; })()}
+                      </td>
                       <td className="px-4 py-2.5 text-gray-500 text-xs">{c._programa}</td>
                       <td className="px-4 py-2.5 text-gray-400 text-xs whitespace-nowrap">{c._nivel}</td>
                       <td className="px-4 py-2.5 text-gray-400 text-xs whitespace-nowrap">{c._modalidad || '—'}</td>
