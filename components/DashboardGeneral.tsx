@@ -179,19 +179,22 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       if (asig && finDI) { const tot = diffDays(asig, finDI); if (tot !== null && tot < 365) tTotal.push(tot); }
     }
 
-    // Aprobaciones por mes (last 8)
+    // Aprobaciones por mes (desde enero del año actual, solo Estado === 'Aprobado DI')
     const now = new Date();
-    const monthCounts = Array(8).fill(0);
+    const currentYear = now.getFullYear();
+    const numMonths = now.getMonth() + 1; // enero=1 mes, junio=6 meses, etc.
+    const monthCounts = Array(numMonths).fill(0);
     const monthLabels: string[] = [];
-    for (let i = 7; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      monthLabels.push(MONTHS_ES[d.getMonth()]);
+    for (let m = 0; m < numMonths; m++) {
+      monthLabels.push(MONTHS_ES[m]);
     }
     for (const c of courses) {
+      if (String(c.Estado ?? '').trim() !== 'Aprobado DI') continue;
       const d = parseDate(c['Fecha fin revisión DI']);
       if (!d) continue;
-      const mo = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
-      if (mo >= 0 && mo < 8) monthCounts[7 - mo]++;
+      if (d.getFullYear() !== currentYear) continue;
+      const m = d.getMonth(); // 0=enero
+      if (m < numMonths) monthCounts[m]++;
     }
 
     // Nivel stats
