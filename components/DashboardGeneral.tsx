@@ -282,7 +282,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
         <KpiCard label="Cargados"       value={s.cargados}     color="#0891b2" />
       </div>
 
-      {/* ── Row 2 ── */}
+      {/* ── Row 2: Vista rápida | Distribución | Aprobaciones ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Vista rápida */}
@@ -328,68 +328,24 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           </div>
         </Card>
 
-        {/* Cursos prioritarios */}
-        <Card title="Cursos prioritarios">
-          <div className="flex items-center gap-4 mb-4">
-            <div>
-              <p className="text-4xl font-bold text-violet-600">{s.prioAll}</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">cursos con etiqueta<br /><span className="text-violet-600 font-semibold">Prioridad</span></p>
-            </div>
-            <div className="text-right ml-auto">
-              <p className="text-2xl font-bold text-gray-900">{s.total > 0 ? Math.round(s.prioAll / s.total * 100) : 0}%</p>
-              <p className="text-[10px] text-gray-400">del total</p>
-            </div>
-          </div>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Estado de los prioritarios</p>
-          <div className="space-y-1.5">
-            {[
-              { label: 'Aprobados',    val: s.prioAprobados,  color: '#16a34a' },
-              { label: 'En revisión',  val: s.prioRevision,   color: '#2563eb' },
-              { label: 'Corrección',   val: s.prioCorreccion, color: '#ea580c' },
-              { label: 'No iniciados', val: s.prioNoIniciados, color: '#dc2626' },
-            ].map(row => (
-              <div key={row.label} className="flex items-center gap-2">
-                <span className="text-[11px] text-gray-500 w-24 shrink-0">{row.label}</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: s.prioAll > 0 ? `${row.val / s.prioAll * 100}%` : '0%', backgroundColor: row.color }} />
+        {/* Distribución por nivel */}
+        <Card title="Distribución por nivel y estado">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            {s.nivelStats.map(n => (
+              <div key={n.nivel}>
+                <p className="text-xs font-bold mb-2" style={{ color: NIVEL_COLORS[n.nivel] }}>
+                  {NIVEL_SHORT[n.nivel]} {n.total}
+                </p>
+                <div className="space-y-1 text-[11px]">
+                  <div className="flex justify-between text-gray-500"><span>Aprobado</span><span className="text-green-600 font-semibold">{n.aprobado}</span></div>
+                  <div className="flex justify-between text-gray-500"><span>En revisión</span><span className="text-blue-600 font-semibold">{n.enRevision}</span></div>
+                  <div className="flex justify-between text-gray-500"><span>Corrección</span><span className="text-orange-600 font-semibold">{n.correccion}</span></div>
+                  <div className="flex justify-between text-gray-500"><span>No iniciado</span><span className="text-gray-700 font-semibold">{n.noIniciado}</span></div>
                 </div>
-                <span className="text-[11px] font-bold w-6 text-right" style={{ color: row.color }}>{row.val}</span>
-                <span className="text-[10px] text-gray-400 w-8">{s.prioAll > 0 ? Math.round(row.val / s.prioAll * 100) : 0}%</span>
               </div>
             ))}
           </div>
-          {s.prioNoIniciados > 0 && (
-            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-[11px] text-red-600">
-              {s.prioNoIniciados} prioritario{s.prioNoIniciados > 1 ? 's' : ''} sin iniciar — requieren atención inmediata
-            </div>
-          )}
         </Card>
-
-        {/* Embudo del pipeline */}
-        <Card title="Embudo del pipeline — % de avance">
-          <div className="space-y-2">
-            {pipelineSteps.map(step => {
-              const pct = s.total > 0 ? Math.round(step.value / s.total * 100) : 0;
-              return (
-                <div key={step.label} className="flex items-center gap-2">
-                  <span className="text-[11px] text-gray-500 w-20 shrink-0">{step.label}</span>
-                  <div className="flex-1 h-4 bg-gray-100 rounded-sm overflow-hidden">
-                    <div className="h-full rounded-sm flex items-center pl-1.5 transition-all"
-                      style={{ width: `${pct}%`, backgroundColor: step.color }}>
-                      {pct > 15 && <span className="text-[10px] font-bold text-white">{step.value}</span>}
-                    </div>
-                  </div>
-                  {pct <= 15 && <span className="text-[10px] font-bold text-gray-600 w-6">{step.value}</span>}
-                  <span className="text-[10px] text-gray-400 w-8 text-right">{pct}%</span>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      </div>
-
-      {/* ── Row 3 ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Aprobaciones por mes + tiempos */}
         <Card title="Aprobaciones por mes">
@@ -425,6 +381,47 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
               <span className="text-sm font-bold text-cyan-600">{s.tTotal} días</span>
             </div>
           </div>
+        </Card>
+      </div>
+
+      {/* ── Row 3: Cursos prioritarios | Prioridades por nivel | Embudo ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Cursos prioritarios */}
+        <Card title="Cursos prioritarios">
+          <div className="flex items-center gap-4 mb-4">
+            <div>
+              <p className="text-4xl font-bold text-violet-600">{s.prioAll}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">cursos con etiqueta<br /><span className="text-violet-600 font-semibold">Prioridad</span></p>
+            </div>
+            <div className="text-right ml-auto">
+              <p className="text-2xl font-bold text-gray-900">{s.total > 0 ? Math.round(s.prioAll / s.total * 100) : 0}%</p>
+              <p className="text-[10px] text-gray-400">del total</p>
+            </div>
+          </div>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Estado de los prioritarios</p>
+          <div className="space-y-1.5">
+            {[
+              { label: 'Aprobados',    val: s.prioAprobados,   color: '#16a34a' },
+              { label: 'En revisión',  val: s.prioRevision,    color: '#2563eb' },
+              { label: 'Corrección',   val: s.prioCorreccion,  color: '#ea580c' },
+              { label: 'No iniciados', val: s.prioNoIniciados, color: '#dc2626' },
+            ].map(row => (
+              <div key={row.label} className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-500 w-24 shrink-0">{row.label}</span>
+                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: s.prioAll > 0 ? `${row.val / s.prioAll * 100}%` : '0%', backgroundColor: row.color }} />
+                </div>
+                <span className="text-[11px] font-bold w-6 text-right" style={{ color: row.color }}>{row.val}</span>
+                <span className="text-[10px] text-gray-400 w-8">{s.prioAll > 0 ? Math.round(row.val / s.prioAll * 100) : 0}%</span>
+              </div>
+            ))}
+          </div>
+          {s.prioNoIniciados > 0 && (
+            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-[11px] text-red-600">
+              {s.prioNoIniciados} prioritario{s.prioNoIniciados > 1 ? 's' : ''} sin iniciar — requieren atención inmediata
+            </div>
+          )}
         </Card>
 
         {/* Prioridades por nivel + avance */}
@@ -487,22 +484,25 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           </div>
         </Card>
 
-        {/* Distribución por nivel */}
-        <Card title="Distribución por nivel y estado">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            {s.nivelStats.map(n => (
-              <div key={n.nivel}>
-                <p className="text-xs font-bold mb-2" style={{ color: NIVEL_COLORS[n.nivel] }}>
-                  {NIVEL_SHORT[n.nivel]} {n.total}
-                </p>
-                <div className="space-y-1 text-[11px]">
-                  <div className="flex justify-between text-gray-500"><span>Aprobado</span><span className="text-green-600 font-semibold">{n.aprobado}</span></div>
-                  <div className="flex justify-between text-gray-500"><span>En revisión</span><span className="text-blue-600 font-semibold">{n.enRevision}</span></div>
-                  <div className="flex justify-between text-gray-500"><span>Corrección</span><span className="text-orange-600 font-semibold">{n.correccion}</span></div>
-                  <div className="flex justify-between text-gray-500"><span>No iniciado</span><span className="text-gray-700 font-semibold">{n.noIniciado}</span></div>
+        {/* Embudo del pipeline */}
+        <Card title="Embudo del pipeline — % de avance">
+          <div className="space-y-2">
+            {pipelineSteps.map(step => {
+              const pct = s.total > 0 ? Math.round(step.value / s.total * 100) : 0;
+              return (
+                <div key={step.label} className="flex items-center gap-2">
+                  <span className="text-[11px] text-gray-500 w-20 shrink-0">{step.label}</span>
+                  <div className="flex-1 h-4 bg-gray-100 rounded-sm overflow-hidden">
+                    <div className="h-full rounded-sm flex items-center pl-1.5 transition-all"
+                      style={{ width: `${pct}%`, backgroundColor: step.color }}>
+                      {pct > 15 && <span className="text-[10px] font-bold text-white">{step.value}</span>}
+                    </div>
+                  </div>
+                  {pct <= 15 && <span className="text-[10px] font-bold text-gray-600 w-6">{step.value}</span>}
+                  <span className="text-[10px] text-gray-400 w-8 text-right">{pct}%</span>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       </div>
