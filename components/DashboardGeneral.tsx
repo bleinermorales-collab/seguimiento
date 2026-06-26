@@ -172,11 +172,12 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       const iniDI = parseDate(c['Fecha inicio revisión DI']);
       const finDI = parseDate(c['Fecha fin revisión DI']);
       const finCorr = parseDate(c['Fecha fin corrección gestor']);
-      const d1 = diffDays(asig, ini);    if (d1 !== null && d1 < 90) tAsigIni.push(d1);
-      const d2 = diffDays(fin, iniDI);   if (d2 !== null && d2 < 90) tFinDI.push(d2);
-      const d3 = diffDays(iniDI, finDI); if (d3 !== null && d3 < 90) tRevDI.push(d3);
-      const d4 = diffDays(finDI, finCorr); if (d4 !== null && d4 < 90) tCorr.push(d4);
-      if (asig && finDI) { const tot = diffDays(asig, finDI); if (tot !== null && tot < 365) tTotal.push(tot); }
+      const hasVal = (v: unknown) => { const s = String(v ?? '').trim(); return !!s && s !== 'null' && s !== 'undefined' && s !== '0'; };
+      const d1 = diffDays(asig, ini);    if (d1 !== null && d1 > 0 && d1 < 90 && hasVal(c['Fecha de asignación']) && hasVal(c['Inicio Gestor'])) tAsigIni.push(d1);
+      const d2 = diffDays(fin, iniDI);   if (d2 !== null && d2 > 0 && d2 < 90 && hasVal(c['Fin Gestor']) && hasVal(c['Fecha inicio revisión DI'])) tFinDI.push(d2);
+      const d3 = diffDays(iniDI, finDI); if (d3 !== null && d3 > 0 && d3 < 90 && hasVal(c['Fecha inicio revisión DI']) && hasVal(c['Fecha fin revisión DI'])) tRevDI.push(d3);
+      const d4 = diffDays(finDI, finCorr); if (d4 !== null && d4 > 0 && d4 < 90 && hasVal(c['Fecha fin revisión DI']) && hasVal(c['Fecha fin corrección gestor'])) tCorr.push(d4);
+      if (asig && finDI && hasVal(c['Fecha de asignación']) && hasVal(c['Fecha fin revisión DI'])) { const tot = diffDays(asig, finDI); if (tot !== null && tot > 0 && tot < 365) tTotal.push(tot); }
     }
 
     // Aprobaciones por mes (desde enero del año actual, solo Estado === 'Aprobado DI')
