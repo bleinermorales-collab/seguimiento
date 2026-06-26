@@ -227,6 +227,13 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       return Math.floor((now.getTime() - d.getTime()) / 86400000) <= 30;
     }).length;
     const aprobadosSemana = (recent / 4.3).toFixed(1);
+
+    const recentEnviados = courses.filter(c => {
+      const d = parseDate(c['Fin Gestor']);
+      if (!d) return false;
+      return Math.floor((now.getTime() - d.getTime()) / 86400000) <= 30;
+    }).length;
+    const enviadosSemana = (recentEnviados / 4.3).toFixed(1);
     const approvedCount = courses.filter(isAprobado).length;
     const approvedDirect = courses.filter(c => isAprobado(c) && !parseDate(c['Fecha fin corrección gestor'])).length;
     const tasaDirecta = approvedCount > 0 ? Math.round((approvedDirect / approvedCount) * 100) : 0;
@@ -243,7 +250,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       nivelStats,
       prioAll: prioAll.length, prioAprobados, prioRevision, prioCorreccion, prioNoIniciados,
       prioByNivel,
-      aprobadosSemana, tasaDirecta,
+      aprobadosSemana, tasaDirecta, enviadosSemana,
     };
   }, [courses]);
 
@@ -301,8 +308,8 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
               <p className="text-[10px] text-gray-500 mt-1 leading-tight">En revisión<br />actualmente</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-orange-600">{s.enCorreccion}</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">En corrección<br />actualmente</p>
+              <p className="text-2xl font-bold text-violet-600">{s.enviadosSemana}</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Cursos enviados<br />a revisión/semana</p>
             </div>
           </div>
 
