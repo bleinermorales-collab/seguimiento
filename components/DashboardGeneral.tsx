@@ -235,6 +235,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       return Math.floor((now.getTime() - d.getTime()) / 86400000) <= 30;
     }).length;
     const enviadosSemana = (recentEnviados / 4.3).toFixed(1);
+    const enviadosDia = (recentEnviados / 30).toFixed(1);
     const approvedCount = courses.filter(isAprobado).length;
     const approvedDirect = courses.filter(c => isAprobado(c) && !parseDate(c['Fecha fin corrección gestor'])).length;
     const tasaDirecta = approvedCount > 0 ? Math.round((approvedDirect / approvedCount) * 100) : 0;
@@ -251,7 +252,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       nivelStats,
       prioAll: prioAll.length, prioAprobados, prioRevision, prioCorreccion, prioNoIniciados,
       prioByNivel,
-      aprobadosSemana, aprobadosDia, tasaDirecta, enviadosSemana,
+      aprobadosSemana, aprobadosDia, tasaDirecta, enviadosSemana, enviadosDia,
     };
   }, [courses]);
 
@@ -311,6 +312,10 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
               <p className="text-2xl font-bold text-indigo-600">{s.tasaDirecta}%</p>
               <p className="text-[10px] text-gray-500 mt-1 leading-tight">Tasa aprobación<br />directa</p>
+            </div>
+            <div className="col-span-2 bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-2xl font-bold text-orange-600">{s.enviadosDia}</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Enviados a revisión<br />por día (prom.)</p>
             </div>
           </div>
 
