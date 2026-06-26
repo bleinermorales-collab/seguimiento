@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
 import { api } from '@/lib/api';
+import DashboardGeneral from '@/components/DashboardGeneral';
 
 interface CourseRow {
   _nivel: string;
@@ -71,7 +72,8 @@ interface UserInfo {
   hasCustomPassword: boolean;
 }
 
-type TabId = 'dashboard' | 'usuarios';
+type TabId = 'dashboard' | 'usuarios' | 'indicadores';
+type SubTabId = 'general' | 'coordinador-gc' | 'coordinador-di' | 'gestores' | 'di';
 
 const STATE_COLORS: Record<string, string> = {
   'En proceso': 'bg-blue-100 text-blue-700',
@@ -97,6 +99,7 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [activeSubTab, setActiveSubTab] = useState<SubTabId>('general');
 
   // Dashboard
   const [courses, setCourses] = useState<CourseRow[]>([]);
@@ -271,6 +274,15 @@ export default function AdminPage() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               Usuarios
               <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${activeTab === 'usuarios' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>{users.length || ''}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('indicadores')}
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                activeTab === 'indicadores' ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+              Indicadores
             </button>
           </div>
         </div>
@@ -456,6 +468,44 @@ export default function AdminPage() {
             </div>
           );
         })()}
+
+        {/* ── TAB: INDICADORES ── */}
+        {activeTab === 'indicadores' && (
+          <>
+            {/* Sub-tabs */}
+            <div className="flex gap-1 mb-5 bg-gray-100 p-1 rounded-xl w-fit">
+              {([
+                { id: 'general', label: 'General' },
+                { id: 'coordinador-gc', label: 'Coord. Gestores' },
+                { id: 'coordinador-di', label: 'Coord. DI' },
+                { id: 'gestores', label: 'Gestores' },
+                { id: 'di', label: 'DI' },
+              ] as { id: SubTabId; label: string }[]).map(sub => (
+                <button
+                  key={sub.id}
+                  onClick={() => setActiveSubTab(sub.id)}
+                  className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${
+                    activeSubTab === sub.id
+                      ? 'bg-white text-violet-700 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {sub.label}
+                </button>
+              ))}
+            </div>
+
+            {activeSubTab === 'general' && !loading && <DashboardGeneral courses={courses} />}
+            {activeSubTab === 'general' && loading && (
+              <div className="bg-[#0f1117] rounded-2xl p-12 text-center text-gray-400 text-sm">Cargando datos...</div>
+            )}
+            {activeSubTab !== 'general' && (
+              <div className="bg-[#0f1117] rounded-2xl p-12 text-center text-gray-500 text-sm">
+                Vista <span className="text-violet-400 font-semibold">{activeSubTab}</span> — próximamente
+              </div>
+            )}
+          </>
+        )}
 
         {/* ── TAB: USUARIOS ── */}
         {activeTab === 'usuarios' && (
