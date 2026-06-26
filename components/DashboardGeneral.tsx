@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 export interface CourseRow {
   _nivel: string;
@@ -149,6 +149,7 @@ function Card({ title, children, className = '' }: { title?: string; children: R
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) {
+  const [showPrioModal, setShowPrioModal] = useState(false);
   const s = useMemo(() => {
     const total = courses.length;
     const aprobados = courses.filter(isAprobado).length;
@@ -217,7 +218,8 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     const prioAprobados = prioAll.filter(isAprobado).length;
     const prioRevision = prioAll.filter(isEnRevision).length;
     const prioCorreccion = prioAll.filter(c => String(c.Estado ?? '').trim() === 'Corrección').length;
-    const prioNoIniciados = prioAll.filter(isNoIniciado).length;
+    const prioNoIniciadosList = prioAll.filter(isNoIniciado);
+    const prioNoIniciados = prioNoIniciadosList.length;
 
     const prioByNivel = NIVELES.map(n => {
       const nc = courses.filter(c => c._nivel === n);
@@ -257,7 +259,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       tTotal: avg(tTotal).toFixed(1),
       monthCounts, monthLabels,
       nivelStats,
-      prioAll: prioAll.length, prioAprobados, prioRevision, prioCorreccion, prioNoIniciados,
+      prioAll: prioAll.length, prioAprobados, prioRevision, prioCorreccion, prioNoIniciados, prioNoIniciadosList,
       prioByNivel,
       aprobadosSemana, aprobadosDia, tasaDirecta, enviadosSemana, enviadosDia,
     };
@@ -285,6 +287,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
   ];
 
   return (
+    <>
     <div className="bg-gray-50 rounded-2xl p-5 space-y-4">
 
       {/* ── KPIs ── */}
@@ -439,8 +442,16 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             ))}
           </div>
           {s.prioNoIniciados > 0 && (
-            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-[11px] text-red-600">
-              {s.prioNoIniciados} prioritario{s.prioNoIniciados > 1 ? 's' : ''} sin iniciar — requieren atención inmediata
+            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+              <span className="text-[11px] text-red-600">
+                {s.prioNoIniciados} prioritario{s.prioNoIniciados > 1 ? 's' : ''} sin iniciar — requieren atención inmediata
+              </span>
+              <button
+                onClick={() => setShowPrioModal(true)}
+                className="shrink-0 text-[11px] font-semibold text-red-700 bg-red-100 hover:bg-red-200 border border-red-300 rounded-md px-2.5 py-1 transition"
+              >
+                Ver lista
+              </button>
             </div>
           )}
         </Card>
@@ -528,5 +539,52 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
         </Card>
       </div>
     </div>
+
+      {/* Modal: prioritarios sin iniciar */}
+      {showPrioModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={e => { if (e.target === e.currentTarget) setShowPrioModal(false); }}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">Cursos prioritarios sin iniciar</h3>
+                <p className="text-xs text-gray-400 mt-0.5">{s.prioNoIniciados} curso{s.prioNoIniciados !== 1 ? 's' : ''} requieren atención</p>
+              </div>
+              <button onClick={() => setShowPrioModal(false)} className="text-gray-400 hover:text-gray-600 transition">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th className="text-left text-[11px] font-semibold text-gray-500 uppercase px-4 py-2.5">Asignatura</th>
+                    <th className="text-left text-[11px] font-semibold text-gray-500 uppercase px-4 py-2.5">Programa</th>
+                    <th className="text-left text-[11px] font-semibold text-gray-500 uppercase px-4 py-2.5">Nivel</th>
+                    <th className="text-left text-[11px] font-semibold text-gray-500 uppercase px-4 py-2.5">Modalidad</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {s.prioNoIniciadosList.map((c, i) => (
+                    <tr key={i} className="hover:bg-red-50/30">
+                      <td className="px-4 py-2.5 font-medium text-gray-900 text-xs">{c.Asignatura}</td>
+                      <td className="px-4 py-2.5 text-gray-500 text-xs">{c._programa}</td>
+                      <td className="px-4 py-2.5 text-gray-400 text-xs whitespace-nowrap">{c._nivel}</td>
+                      <td className="px-4 py-2.5 text-gray-400 text-xs whitespace-nowrap">{c._modalidad || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-6 py-3 border-t border-gray-100">
+              <button onClick={() => setShowPrioModal(false)} className="w-full py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
