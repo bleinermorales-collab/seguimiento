@@ -347,7 +347,7 @@ export default function CoordinadorDIPage() {
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <div className="min-w-[700px]">
-                    <div className="grid grid-cols-[65px_150px_1fr_130px_70px_110px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                    <div className="grid grid-cols-[150px_250px_1fr_130px_70px_110px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
@@ -363,7 +363,7 @@ export default function CoordinadorDIPage() {
                       ) : porAsignar.map((c, i) => {
                         const dPA = diasDesde(parseDate(c['Fin Gestor']));
                         return (
-                          <div key={i} className="grid grid-cols-[65px_150px_1fr_130px_70px_110px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
+                          <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_70px_110px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                             <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
                             <div className="min-w-0">
                               <p className="text-xs text-gray-500 truncate">{c._programa}</p>
@@ -400,7 +400,7 @@ export default function CoordinadorDIPage() {
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <div className="min-w-[750px]">
-                    <div className="grid grid-cols-[65px_140px_1fr_130px_70px_150px_110px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                    <div className="grid grid-cols-[150px_250px_1fr_130px_70px_150px_110px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
@@ -417,7 +417,7 @@ export default function CoordinadorDIPage() {
                       ) : asignados.map((c, i) => {
                         const dAS = diasDesde(parseDate(c['Fecha de asignación']));
                         return (
-                          <div key={i} className="grid grid-cols-[65px_140px_1fr_130px_70px_150px_110px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
+                          <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_70px_150px_110px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                             <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
                             <div className="min-w-0">
                               <p className="text-xs text-gray-500 truncate">{c._programa}</p>
@@ -457,7 +457,7 @@ export default function CoordinadorDIPage() {
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <div className="min-w-[870px]">
-                    <div className="grid grid-cols-[65px_150px_1fr_130px_70px_150px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                    <div className="grid grid-cols-[150px_250px_1fr_130px_70px_150px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
@@ -474,7 +474,7 @@ export default function CoordinadorDIPage() {
                       ) : devueltos.map((c, i) => {
                         const dDV = diasDesde(parseDate(c['Fecha fin revisión DI']));
                         return (
-                        <div key={i} className="grid grid-cols-[65px_150px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
+                        <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                           <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
                           <span className="text-xs text-gray-500 truncate">{c._programa}</span>
                           <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
@@ -496,7 +496,7 @@ export default function CoordinadorDIPage() {
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <div className="min-w-[870px]">
-                    <div className="grid grid-cols-[65px_150px_1fr_130px_70px_150px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                    <div className="grid grid-cols-[150px_250px_1fr_130px_70px_150px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
@@ -513,7 +513,7 @@ export default function CoordinadorDIPage() {
                       ) : aprobados.map((c, i) => {
                         const dAP = diasDesde(parseDate(c['Fecha fin revisión DI']));
                         return (
-                        <div key={i} className="grid grid-cols-[65px_150px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
+                        <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                           <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
                           <span className="text-xs text-gray-500 truncate">{c._programa}</span>
                           <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>

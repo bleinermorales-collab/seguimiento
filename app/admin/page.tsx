@@ -327,7 +327,7 @@ export default function AdminPage() {
                 <div className="p-12 text-center text-red-500 text-sm">Error al cargar: {fetchError}</div>
               ) : (
                 <>
-                  <div className="grid grid-cols-[65px_160px_90px_1fr_120px_76px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                  <div className="grid grid-cols-[150px_250px_90px_1fr_120px_76px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                     <span>Nivel</span>
                     <span>Programa</span>
                     <span>Modalidad</span>
@@ -339,9 +339,9 @@ export default function AdminPage() {
                   {filtered.slice(0, 200).map((c, i) => {
                       const estado = String(c.Estado ?? '').trim();
                       return (
-                        <div key={i} className={`grid grid-cols-[65px_160px_90px_1fr_120px_76px] items-center gap-3 px-5 py-3 hover:bg-gray-50/60 ${isPriority(c) ? 'bg-red-50/20' : ''}`}>
-                          <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
-                          <span className="text-xs text-gray-500 truncate" title={c._programa}>{c._programa}</span>
+                        <div key={i} className={`grid grid-cols-[150px_250px_90px_1fr_120px_76px] items-center gap-3 px-5 py-3 hover:bg-gray-50/60 ${isPriority(c) ? 'bg-red-50/20' : ''}`}>
+                          <span className="text-xs text-gray-400">{c._nivel}</span>
+                          <span className="text-xs text-gray-500">{c._programa}</span>
                           <span className="text-xs text-gray-400 truncate">{c._modalidad || '—'}</span>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">

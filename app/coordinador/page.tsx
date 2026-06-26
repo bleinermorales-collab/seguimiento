@@ -748,8 +748,8 @@ export default function CoordinadorPage() {
             {activeTab === 'todos' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[1100px]">
-                    <div className="grid grid-cols-[130px_210px_90px_1fr_38px_110px_115px_140px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                  <div className="min-w-[1200px]">
+                    <div className="grid grid-cols-[160px_280px_90px_1fr_38px_110px_115px_140px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Modalidad</span>
@@ -770,7 +770,7 @@ export default function CoordinadorPage() {
                         return (
                           <div
                             key={i}
-                            className={`grid grid-cols-[130px_210px_90px_1fr_38px_110px_115px_140px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}
+                            className={`grid grid-cols-[160px_280px_90px_1fr_38px_110px_115px_140px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}
                           >
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500">{c._programa}</span>
@@ -856,8 +856,8 @@ export default function CoordinadorPage() {
 
                 <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                   <div className="overflow-x-auto">
-                    <div className="min-w-[1120px]">
-                      <div className="grid grid-cols-[32px_130px_210px_85px_1fr_38px_130px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3 items-center">
+                    <div className="min-w-[1220px]">
+                      <div className="grid grid-cols-[32px_160px_280px_85px_1fr_38px_130px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3 items-center">
                         <input
                           type="checkbox"
                           checked={sinIniciar.length > 0 && selectedKeys.size === sinIniciar.length}
@@ -887,7 +887,7 @@ export default function CoordinadorPage() {
                             <div
                               key={i}
                               onClick={() => toggleSelect(k)}
-                              className={`grid grid-cols-[32px_130px_210px_85px_1fr_38px_130px_100px] items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${
+                              className={`grid grid-cols-[32px_160px_280px_85px_1fr_38px_130px_100px] items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${
                                 checked ? 'bg-indigo-50/60' : priority ? 'bg-red-50/40 hover:bg-gray-50/50' : 'hover:bg-gray-50/50'
                               }`}
                             >
@@ -938,8 +938,8 @@ export default function CoordinadorPage() {
             {activeTab === 'asignados' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[1100px]">
-                    <div className="grid grid-cols-[130px_210px_1fr_160px_110px_70px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                  <div className="min-w-[1200px]">
+                    <div className="grid grid-cols-[160px_280px_1fr_160px_110px_70px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
@@ -959,7 +959,7 @@ export default function CoordinadorPage() {
                         const estado = String(c.Estado ?? '').trim();
                         const dias = diasDesde(getLastStateDate(c));
                         return (
-                          <div key={i} className={`grid grid-cols-[130px_210px_1fr_160px_110px_70px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}>
+                          <div key={i} className={`grid grid-cols-[160px_280px_1fr_160px_110px_70px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}>
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500 truncate">{c._programa}</span>
                             <div className="min-w-0">
@@ -996,8 +996,8 @@ export default function CoordinadorPage() {
             {activeTab === 'devueltos' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[1050px]">
-                    <div className="grid grid-cols-[130px_210px_1fr_130px_70px_150px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                  <div className="min-w-[1150px]">
+                    <div className="grid grid-cols-[160px_280px_1fr_130px_70px_150px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
@@ -1014,7 +1014,7 @@ export default function CoordinadorPage() {
                       ) : devueltos.map((c, i) => {
                         const dDV = diasDesde(parseDate(c['Fecha fin revisión DI']));
                         return (
-                          <div key={i} className="grid grid-cols-[130px_210px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
+                          <div key={i} className="grid grid-cols-[160px_280px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500">{c._programa}</span>
                             <div className="min-w-0">
