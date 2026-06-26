@@ -278,10 +278,10 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-4 lg:grid-cols-7 gap-3">
         <KpiCard label="Total cursos"   value={s.total}        color="#111827" />
-        <KpiCard label="Aprobados"      value={s.aprobados}    color="#16a34a" />
+        <KpiCard label="No iniciados"   value={s.noIniciados}  color="#dc2626" />
         <KpiCard label="En revisión"    value={s.enRevision}   color="#2563eb" />
         <KpiCard label="En corrección"  value={s.enCorreccion} color="#ea580c" />
-        <KpiCard label="No iniciados"   value={s.noIniciados}  color="#dc2626" />
+        <KpiCard label="Aprobados"      value={s.aprobados}    color="#16a34a" />
         <KpiCard label="Producidos"     value={s.producidos}   color="#9333ea" />
         <KpiCard label="Cargados"       value={s.cargados}     color="#0891b2" />
       </div>
