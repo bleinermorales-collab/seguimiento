@@ -497,11 +497,11 @@ export default function AdminPage() {
 
             {activeSubTab === 'general' && !loading && <DashboardGeneral courses={courses} />}
             {activeSubTab === 'general' && loading && (
-              <div className="bg-[#0f1117] rounded-2xl p-12 text-center text-gray-400 text-sm">Cargando datos...</div>
+              <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-400 text-sm">Cargando datos...</div>
             )}
             {activeSubTab !== 'general' && (
-              <div className="bg-[#0f1117] rounded-2xl p-12 text-center text-gray-500 text-sm">
-                Vista <span className="text-violet-400 font-semibold">{activeSubTab}</span> — próximamente
+              <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-500 text-sm">
+                Vista <span className="text-violet-600 font-semibold">{activeSubTab}</span> — próximamente
               </div>
             )}
           </>
