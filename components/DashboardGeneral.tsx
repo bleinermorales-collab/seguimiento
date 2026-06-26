@@ -298,6 +298,14 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
         <Card title="Vista rápida">
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-2xl font-bold text-orange-600">{s.enviadosDia}</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Enviados a revisión<br />por día (prom.)</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-2xl font-bold text-green-600">{s.aprobadosDia}</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Aprobados<br />por día (prom.)</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
               <p className="text-2xl font-bold text-violet-600">{s.enviadosSemana}</p>
               <p className="text-[10px] text-gray-500 mt-1 leading-tight">Enviados a<br />revisión/semana</p>
             </div>
@@ -305,17 +313,9 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
               <p className="text-2xl font-bold text-cyan-600">{s.aprobadosSemana}</p>
               <p className="text-[10px] text-gray-500 mt-1 leading-tight">Aprobados<br />por semana</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-green-600">{s.aprobadosDia}</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Aprobados<br />por día (prom.)</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-indigo-600">{s.tasaDirecta}%</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Tasa aprobación<br />directa</p>
-            </div>
             <div className="col-span-2 bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-              <p className="text-2xl font-bold text-orange-600">{s.enviadosDia}</p>
-              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Enviados a revisión<br />por día (prom.)</p>
+              <p className="text-2xl font-bold text-indigo-600">{s.tasaDirecta}%</p>
+              <p className="text-[10px] text-gray-500 mt-1 leading-tight">Tasa aprobación directa</p>
             </div>
           </div>
 
