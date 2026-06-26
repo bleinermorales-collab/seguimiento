@@ -241,8 +241,9 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     }).length;
     const enviadosSemana = (recentEnviados / 4.3).toFixed(1);
     const enviadosDia = (recentEnviados / 30).toFixed(1);
-    const approvedCount = courses.filter(isAprobado).length;
-    const approvedDirect = courses.filter(c => isAprobado(c) && !parseDate(c['Fecha fin corrección gestor'])).length;
+    const isAprobadoCurso = (c: CourseRow) => String(c['Estado curso'] ?? '').trim() === 'Aprobado';
+    const approvedCount = courses.filter(isAprobadoCurso).length;
+    const approvedDirect = courses.filter(c => isAprobadoCurso(c) && !parseDate(c['Fecha fin corrección gestor'])).length;
     const tasaDirecta = approvedCount > 0 ? Math.round((approvedDirect / approvedCount) * 100) : 0;
 
     return {
