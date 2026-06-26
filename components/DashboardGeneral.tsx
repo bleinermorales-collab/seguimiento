@@ -164,7 +164,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     const conDI = courses.filter(c => !!(c['DI responsable'] || '').toString().trim()).length;
 
     // Times
-    const tAsigIni: number[] = [], tFinDI: number[] = [], tRevDI: number[] = [], tCorr: number[] = [], tTotal: number[] = [];
+    const tAsigIni: number[] = [], tGestor: number[] = [], tFinDI: number[] = [], tRevDI: number[] = [], tCorr: number[] = [], tTotal: number[] = [];
     for (const c of courses) {
       const asig = parseDate(c['Fecha de asignación']);
       const ini = parseDate(c['Inicio Gestor']);
@@ -174,6 +174,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       const finCorr = parseDate(c['Fecha fin corrección gestor']);
       const hasVal = (v: unknown) => { const s = String(v ?? '').trim(); return !!s && s !== 'null' && s !== 'undefined' && s !== '0'; };
       const d1 = diffDays(asig, ini);    if (d1 !== null && d1 > 0 && d1 < 90 && hasVal(c['Fecha de asignación']) && hasVal(c['Inicio Gestor'])) tAsigIni.push(d1);
+      const dg = diffDays(ini, fin);     if (dg !== null && dg >= 0 && dg < 365 && hasVal(c['Inicio Gestor']) && hasVal(c['Fin Gestor'])) tGestor.push(Math.max(1, dg));
       const d2 = diffDays(fin, iniDI);   if (d2 !== null && d2 > 0 && d2 < 90 && hasVal(c['Fin Gestor']) && hasVal(c['Fecha inicio revisión DI'])) tFinDI.push(d2);
       const d3 = diffDays(iniDI, finDI); if (d3 !== null && d3 >= 0 && d3 < 90 && hasVal(c['Fecha inicio revisión DI']) && hasVal(c['Fecha fin revisión DI'])) tRevDI.push(Math.max(1, d3));
       const d4 = diffDays(finDI, finCorr); if (d4 !== null && d4 > 0 && d4 < 90 && hasVal(c['Fecha fin revisión DI']) && hasVal(c['Fecha fin corrección gestor'])) tCorr.push(d4);
@@ -248,6 +249,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       total, aprobados, enRevision, enCorreccion, noIniciados, producidos, cargados,
       asignados, iniciados, conDI,
       tAsigIni: avg(tAsigIni).toFixed(1),
+      tGestor: avg(tGestor).toFixed(1),
       tFinDI: avg(tFinDI).toFixed(1),
       tRevDI: avg(tRevDI).toFixed(1),
       tCorr: avg(tCorr).toFixed(1),
@@ -384,6 +386,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Resumen de tiempos promedio</p>
             {[
               { label: 'Asignación → Inicio gestor', val: s.tAsigIni, color: '#6366f1' },
+              { label: 'Duración virtualización',     val: s.tGestor,  color: '#0891b2' },
               { label: 'Fin gestor → asig. DI',      val: s.tFinDI,   color: '#8b5cf6' },
               { label: 'Duración revisión DI',        val: s.tRevDI,   color: '#2563eb' },
               { label: 'Tiempo corrección gestor',    val: s.tCorr,    color: '#ea580c' },
