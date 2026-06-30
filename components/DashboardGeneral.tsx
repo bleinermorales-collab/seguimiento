@@ -344,6 +344,26 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       prioAll: prioAll.length, prioAprobados, prioRevision, prioCorreccion, prioNoIniciados, prioNoIniciadosList,
       prioByNivel,
       aprobadosSemana, aprobadosDia, tasaDirecta, enviadosSemana, enviadosDia,
+
+      // Metodología: conteo por programa y modalidad
+      metodologia: (() => {
+        const modalSet = new Set<string>();
+        const byProg: Record<string, Record<string, number>> = {};
+        for (const c of courses) {
+          const prog = String(c._programa ?? '—').trim();
+          const mod  = String(c._modalidad ?? '—').trim() || '—';
+          modalSet.add(mod);
+          if (!byProg[prog]) byProg[prog] = {};
+          byProg[prog][mod] = (byProg[prog][mod] ?? 0) + 1;
+        }
+        const modalidades = Array.from(modalSet).sort();
+        const programas = Object.keys(byProg).sort().map(prog => ({
+          prog,
+          counts: byProg[prog],
+          total: Object.values(byProg[prog]).reduce((a, b) => a + b, 0),
+        }));
+        return { modalidades, programas };
+      })(),
     };
   }, [courses]);
 
@@ -717,26 +737,58 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           </div>
         </Card>
 
-        {/* Embudo del pipeline */}
-        <Card title="Embudo del pipeline — % de avance">
-          <div className="space-y-2">
-            {pipelineSteps.map(step => {
-              const pct = s.total > 0 ? Math.round(step.value / s.total * 100) : 0;
-              return (
-                <div key={step.label} className="flex items-center gap-2">
-                  <span className="text-[11px] text-gray-500 w-20 shrink-0">{step.label}</span>
-                  <div className="flex-1 h-4 bg-gray-100 rounded-sm overflow-hidden">
-                    <div className="h-full rounded-sm flex items-center pl-1.5 transition-all"
-                      style={{ width: `${pct}%`, backgroundColor: step.color }}>
-                      {pct > 15 && <span className="text-[10px] font-bold text-white">{step.value}</span>}
-                    </div>
-                  </div>
-                  {pct <= 15 && <span className="text-[10px] font-bold text-gray-600 w-6">{step.value}</span>}
-                  <span className="text-[10px] text-gray-400 w-8 text-right">{pct}%</span>
-                </div>
-              );
-            })}
-          </div>
+        {/* Metodología */}
+        <Card title="Metodología">
+          {(() => {
+            const MOD_COLOR: Record<string, string> = {
+              'Virtual':    '#2563eb',
+              'Presencial': '#16a34a',
+              'Ambas':      '#7c3aed',
+            };
+            const { modalidades, programas } = s.metodologia;
+            return (
+              <div className="overflow-auto max-h-72">
+                <table className="w-full text-[10.5px] border-collapse">
+                  <thead className="sticky top-0 bg-white">
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left font-semibold text-gray-500 pb-2 pr-3">Programa</th>
+                      {modalidades.map(m => (
+                        <th key={m} className="text-right font-semibold pb-2 px-2 whitespace-nowrap"
+                          style={{ color: MOD_COLOR[m] ?? '#6b7280' }}>{m}</th>
+                      ))}
+                      <th className="text-right font-semibold text-gray-700 pb-2 pl-2">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {programas.map(({ prog, counts, total }) => (
+                      <tr key={prog} className="hover:bg-gray-50/60">
+                        <td className="py-1.5 pr-3 text-gray-700 font-medium leading-tight max-w-[120px] truncate" title={prog}>{prog}</td>
+                        {modalidades.map(m => (
+                          <td key={m} className="py-1.5 px-2 text-right font-bold"
+                            style={{ color: counts[m] ? (MOD_COLOR[m] ?? '#6b7280') : '#d1d5db' }}>
+                            {counts[m] ?? 0}
+                          </td>
+                        ))}
+                        <td className="py-1.5 pl-2 text-right font-bold text-gray-800">{total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-gray-200 bg-white sticky bottom-0">
+                      <td className="py-1.5 pr-3 font-bold text-gray-900">Total</td>
+                      {modalidades.map(m => (
+                        <td key={m} className="py-1.5 px-2 text-right font-bold"
+                          style={{ color: MOD_COLOR[m] ?? '#6b7280' }}>
+                          {programas.reduce((a, r) => a + (r.counts[m] ?? 0), 0)}
+                        </td>
+                      ))}
+                      <td className="py-1.5 pl-2 text-right font-bold text-gray-900">{s.total}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            );
+          })()}
         </Card>
       </div>
     </div>
