@@ -14,5 +14,5 @@ export const NOTIF_BASE: Record<string, string[]> = {
   devuelto:  [CGC_EMAIL, CDI_EMAIL, LIZ_EMAIL], // + Gestor responsable del curso
   // Asignaciones (coordinador)
   asignacion_gestor: [CGC_EMAIL, LIZ_EMAIL], // + Gestor asignado
-  asignacion_di:     [LIZ_EMAIL],               // + DI asignado
+  asignacion_di:     [CDI_EMAIL, LIZ_EMAIL],    // + DI asignado
 };

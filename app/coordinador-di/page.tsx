@@ -93,6 +93,7 @@ export default function CoordinadorDIPage() {
   const [filterSemestre, setFilterSemestre] = useState('');
   const [filterFechaDesde, setFilterFechaDesde] = useState('');
   const [filterFechaHasta, setFilterFechaHasta] = useState('');
+  const [filterDI, setFilterDI] = useState('');
   const [saving, setSaving] = useState<string | null>(null);
   const [sendingReport, setSendingReport] = useState(false);
   const [reportMsg, setReportMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -119,6 +120,7 @@ export default function CoordinadorDIPage() {
       if (filterFechaDesde && fa < new Date(filterFechaDesde)) return false;
       if (filterFechaHasta && fa > new Date(filterFechaHasta + 'T23:59:59')) return false;
     }
+    if (filterDI && diActual(c) !== filterDI) return false;
     const q = norm(search);
     if (q && !norm(c.Asignatura ?? '').includes(q) && !norm(c._programa ?? '').includes(q)) return false;
     return true;
@@ -347,6 +349,14 @@ export default function CoordinadorDIPage() {
           >
             <option value="">Todos los semestres</option>
             {semestres.map(s => <option key={s} value={s}>Semestre {s}</option>)}
+          </select>
+          <select
+            value={filterDI}
+            onChange={e => setFilterDI(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+          >
+            <option value="">Todos los DI</option>
+            {dis.map((d: string) => <option key={d} value={d}>{d}</option>)}
           </select>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-400 whitespace-nowrap">Fecha asig.</span>
