@@ -964,7 +964,7 @@ export default function CoordinadorPage() {
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <div className="min-w-[1200px]">
-                    <div className="grid grid-cols-[160px_280px_1fr_160px_110px_70px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                    <div className="grid grid-cols-[160px_280px_1fr_160px_110px_70px_180px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
@@ -984,7 +984,7 @@ export default function CoordinadorPage() {
                         const estado = String(c.Estado ?? '').trim();
                         const dias = diasDesde(getLastStateDate(c));
                         return (
-                          <div key={i} className={`grid grid-cols-[160px_280px_1fr_160px_110px_70px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}>
+                          <div key={i} className={`grid grid-cols-[160px_280px_1fr_160px_110px_70px_180px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}>
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500 truncate">{c._programa}</span>
                             <div className="min-w-0">
@@ -999,15 +999,23 @@ export default function CoordinadorPage() {
                             <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full truncate border border-emerald-200" title={actual}>{actual}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${ESTADO_BADGE[estado] || 'bg-gray-100 text-gray-600'}`}>{estado}</span>
                             <span className={`text-xs font-semibold ${diasClass(dias)}`}>{diasBadge(dias)}</span>
-                            <button
-                              onClick={() => setTracking(c)}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition whitespace-nowrap"
-                            >
-                              <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              Fechas
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => setTracking(c)}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition whitespace-nowrap"
+                              >
+                                <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Fechas
+                              </button>
+                              <button
+                                onClick={() => setModal({ curso: c, gestor: actual, link: linkActual(c), obs: '' })}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition whitespace-nowrap"
+                              >
+                                Reasignar
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
