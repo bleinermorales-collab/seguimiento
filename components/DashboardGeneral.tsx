@@ -388,6 +388,38 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             </div>
           </div>
         </Card>
+
+        {/* Avance general */}
+        <Card title="Avance general">
+          <div className="space-y-5">
+            {[
+              { label: '% de avance aprobado',    desc: 'Aprobados / total de cursos',          pct: s.total > 0 ? Math.round(s.aprobados / s.total * 100) : 0,                         color: '#16a34a', track: '#dcfce7', val: s.aprobados },
+              { label: '% pendiente de iniciar',  desc: 'No iniciados / total de cursos',        pct: s.total > 0 ? Math.round(s.noIniciados / s.total * 100) : 0,                       color: '#dc2626', track: '#fee2e2', val: s.noIniciados },
+              { label: '% en proceso',             desc: 'En revisión + corrección / total',      pct: s.total > 0 ? Math.round((s.enRevision + s.enCorreccion) / s.total * 100) : 0,    color: '#2563eb', track: '#dbeafe', val: s.enRevision + s.enCorreccion },
+            ].map(m => {
+              const r = 30, cx = 38, cy = 38;
+              const circ = 2 * Math.PI * r;
+              const dash = (m.pct / 100) * circ;
+              return (
+                <div key={m.label} className="flex items-center gap-4">
+                  <svg width="76" height="76" className="shrink-0">
+                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={m.track} strokeWidth="7" />
+                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={m.color} strokeWidth="7"
+                      strokeLinecap="round"
+                      strokeDasharray={`${dash} ${circ}`}
+                      style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }} />
+                    <text x={cx} y={cy + 5} textAnchor="middle" fontSize="14" fontWeight="bold" fill={m.color}>{m.pct}%</text>
+                  </svg>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-gray-800 leading-tight">{m.label}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{m.desc}</p>
+                    <p className="text-sm font-bold mt-1.5" style={{ color: m.color }}>{m.val.toLocaleString('es-CO')} cursos</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       </div>
 
       {/* ── Distribución por nivel y estado (fila completa) ── */}
