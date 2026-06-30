@@ -345,24 +345,29 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       prioByNivel,
       aprobadosSemana, aprobadosDia, tasaDirecta, enviadosSemana, enviadosDia,
 
-      // Metodología: conteo por programa y modalidad
+      // Metodología: cargados y pendientes por programa y modalidad
       metodologia: (() => {
-        const modalSet = new Set<string>();
-        const byProg: Record<string, Record<string, number>> = {};
-        for (const c of courses) {
-          const prog = String(c._programa ?? '—').trim();
-          const mod  = String(c._modalidad ?? '—').trim() || '—';
-          modalSet.add(mod);
-          if (!byProg[prog]) byProg[prog] = {};
-          byProg[prog][mod] = (byProg[prog][mod] ?? 0) + 1;
-        }
-        const modalidades = Array.from(modalSet).sort();
-        const programas = Object.keys(byProg).sort().map(prog => ({
-          prog,
-          counts: byProg[prog],
-          total: Object.values(byProg[prog]).reduce((a, b) => a + b, 0),
-        }));
-        return { modalidades, programas };
+        const buildTable = (subset: typeof courses) => {
+          const modalSet = new Set<string>();
+          const byProg: Record<string, Record<string, number>> = {};
+          for (const c of subset) {
+            const prog = String(c._programa ?? '—').trim();
+            const mod  = String(c._modalidad ?? '—').trim() || '—';
+            modalSet.add(mod);
+            if (!byProg[prog]) byProg[prog] = {};
+            byProg[prog][mod] = (byProg[prog][mod] ?? 0) + 1;
+          }
+          const modalidades = Array.from(modalSet).sort();
+          const programas = Object.keys(byProg).sort().map(prog => ({
+            prog, counts: byProg[prog],
+            total: Object.values(byProg[prog]).reduce((a, b) => a + b, 0),
+          }));
+          return { modalidades, programas };
+        };
+        return {
+          cargados:   buildTable(courses.filter(c => String(c.Estado ?? '').trim() === 'Cargado')),
+          pendientes: buildTable(courses.filter(isNoIniciado)),
+        };
       })(),
     };
   }, [courses]);
@@ -738,58 +743,58 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
         </Card>
 
         {/* Metodología */}
-        <Card title="Metodología">
-          {(() => {
-            const MOD_COLOR: Record<string, string> = {
-              'Virtual':    '#2563eb',
-              'Presencial': '#16a34a',
-              'Ambas':      '#7c3aed',
-            };
-            const { modalidades, programas } = s.metodologia;
-            return (
-              <div className="overflow-auto max-h-72">
-                <table className="w-full text-[10.5px] border-collapse">
-                  <thead className="sticky top-0 bg-white">
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left font-semibold text-gray-500 pb-2 pr-3">Programa</th>
-                      {modalidades.map(m => (
-                        <th key={m} className="text-right font-semibold pb-2 px-2 whitespace-nowrap"
-                          style={{ color: MOD_COLOR[m] ?? '#6b7280' }}>{m}</th>
-                      ))}
-                      <th className="text-right font-semibold text-gray-700 pb-2 pl-2">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {programas.map(({ prog, counts, total }) => (
-                      <tr key={prog} className="hover:bg-gray-50/60">
-                        <td className="py-1.5 pr-3 text-gray-700 font-medium leading-tight max-w-[120px] truncate" title={prog}>{prog}</td>
-                        {modalidades.map(m => (
-                          <td key={m} className="py-1.5 px-2 text-right font-bold"
-                            style={{ color: counts[m] ? (MOD_COLOR[m] ?? '#6b7280') : '#d1d5db' }}>
-                            {counts[m] ?? 0}
-                          </td>
-                        ))}
-                        <td className="py-1.5 pl-2 text-right font-bold text-gray-800">{total}</td>
-                      </tr>
+        {(() => {
+          const MOD_COLOR: Record<string, string> = { 'Virtual': '#2563eb', 'Presencial': '#16a34a', 'Ambas': '#7c3aed' };
+          const MetTable = ({ data }: { data: { modalidades: string[]; programas: { prog: string; counts: Record<string,number>; total: number }[] } }) => (
+            <div className="overflow-auto max-h-56">
+              <table className="w-full text-[10.5px] border-collapse">
+                <thead className="sticky top-0 bg-white">
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left font-semibold text-gray-500 pb-1.5 pr-3">Programa</th>
+                    {data.modalidades.map(m => (
+                      <th key={m} className="text-right font-semibold pb-1.5 px-2 whitespace-nowrap" style={{ color: MOD_COLOR[m] ?? '#6b7280' }}>{m}</th>
                     ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t-2 border-gray-200 bg-white sticky bottom-0">
-                      <td className="py-1.5 pr-3 font-bold text-gray-900">Total</td>
-                      {modalidades.map(m => (
-                        <td key={m} className="py-1.5 px-2 text-right font-bold"
-                          style={{ color: MOD_COLOR[m] ?? '#6b7280' }}>
-                          {programas.reduce((a, r) => a + (r.counts[m] ?? 0), 0)}
-                        </td>
+                    <th className="text-right font-semibold text-gray-700 pb-1.5 pl-2">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {data.programas.map(({ prog, counts, total }) => (
+                    <tr key={prog} className="hover:bg-gray-50/60">
+                      <td className="py-1 pr-3 text-gray-700 font-medium leading-tight max-w-[110px] truncate" title={prog}>{prog}</td>
+                      {data.modalidades.map(m => (
+                        <td key={m} className="py-1 px-2 text-right font-bold" style={{ color: counts[m] ? (MOD_COLOR[m] ?? '#6b7280') : '#d1d5db' }}>{counts[m] ?? 0}</td>
                       ))}
-                      <td className="py-1.5 pl-2 text-right font-bold text-gray-900">{s.total}</td>
+                      <td className="py-1 pl-2 text-right font-bold text-gray-800">{total}</td>
                     </tr>
-                  </tfoot>
-                </table>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-gray-200 bg-white">
+                    <td className="py-1 pr-3 font-bold text-gray-900">Total</td>
+                    {data.modalidades.map(m => (
+                      <td key={m} className="py-1 px-2 text-right font-bold" style={{ color: MOD_COLOR[m] ?? '#6b7280' }}>{data.programas.reduce((a, r) => a + (r.counts[m] ?? 0), 0)}</td>
+                    ))}
+                    <td className="py-1 pl-2 text-right font-bold text-gray-900">{data.programas.reduce((a, r) => a + r.total, 0)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          );
+          return (
+            <Card title="Metodología">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-[10px] font-bold text-teal-600 uppercase tracking-wider mb-2">Cargados</p>
+                  <MetTable data={s.metodologia.cargados} />
+                </div>
+                <div className="border-t border-gray-100 pt-4">
+                  <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-2">Pendientes</p>
+                  <MetTable data={s.metodologia.pendientes} />
+                </div>
               </div>
-            );
-          })()}
-        </Card>
+            </Card>
+          );
+        })()}
       </div>
     </div>
 
