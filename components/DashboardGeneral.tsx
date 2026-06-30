@@ -141,7 +141,7 @@ function KpiCard({ label, value, color }: { label: string; value: number | strin
 // ── Line chart (pure SVG, no deps) ────────────────────────────────────────────
 function LineChart({ data, color = '#2563eb' }: { data: { label: string; value: number }[]; color?: string }) {
   if (!data.length) return <p className="text-xs text-gray-400 text-center py-8">Sin datos</p>;
-  const W = 560; const H = 180; const PAD = { t: 16, r: 16, b: 40, l: 50 };
+  const W = 700; const H = 210; const PAD = { t: 30, r: 20, b: 48, l: 44 };
   const gW = W - PAD.l - PAD.r; const gH = H - PAD.t - PAD.b;
   const maxV = Math.max(...data.map(d => d.value), 1);
   const xs = data.map((_, i) => PAD.l + (gW / Math.max(data.length - 1, 1)) * i);
@@ -149,18 +149,17 @@ function LineChart({ data, color = '#2563eb' }: { data: { label: string; value: 
   const linePath = data.map((_, i) => `${i === 0 ? 'M' : 'L'}${xs[i].toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
   const areaPath = `${linePath} L${xs[xs.length - 1].toFixed(1)},${(PAD.t + gH).toFixed(1)} L${PAD.l},${(PAD.t + gH).toFixed(1)} Z`;
   const yTicks = [0, 0.25, 0.5, 0.75, 1].map(r => ({ v: Math.round(r * maxV), y: PAD.t + gH - r * gH }));
-  const step = Math.max(1, Math.ceil(data.length / 8));
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
       {yTicks.map(t => (
         <g key={t.v}>
           <line x1={PAD.l} x2={W - PAD.r} y1={t.y} y2={t.y} stroke="#f3f4f6" strokeWidth="1" />
-          <text x={PAD.l - 6} y={t.y + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{t.v}</text>
+          <text x={PAD.l - 6} y={t.y + 3.5} textAnchor="end" fontSize="8.5" fill="#9ca3af">{t.v}</text>
         </g>
       ))}
       <defs>
         <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.18" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.16" />
           <stop offset="100%" stopColor={color} stopOpacity="0.01" />
         </linearGradient>
       </defs>
@@ -168,10 +167,11 @@ function LineChart({ data, color = '#2563eb' }: { data: { label: string; value: 
       <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
       {data.map((d, i) => (
         <g key={i}>
-          <circle cx={xs[i]} cy={ys[i]} r="3.5" fill="white" stroke={color} strokeWidth="2" />
-          {i % step === 0 && (
-            <text x={xs[i]} y={H - 10} textAnchor="middle" fontSize="9" fill="#6b7280">{d.label}</text>
+          {d.value > 0 && (
+            <text x={xs[i]} y={ys[i] - 8} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={color}>{d.value}</text>
           )}
+          <circle cx={xs[i]} cy={ys[i]} r="3.5" fill="white" stroke={color} strokeWidth="2" />
+          <text x={xs[i]} y={H - 8} textAnchor="middle" fontSize="7.5" fill="#6b7280">{d.label}</text>
         </g>
       ))}
     </svg>
@@ -739,7 +739,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             </div>
           </div>
           <LineChart
-            data={trendMode === 'semanal' ? s.weeklyTrend : s.monthlyTrend}
+            data={trendMode === 'semanal' ? s.weeklyTrend.slice(-12) : s.monthlyTrend}
             color="#2563eb"
           />
           <p className="text-[10px] text-gray-400 text-center mt-1">
