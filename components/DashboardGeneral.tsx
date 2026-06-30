@@ -240,24 +240,31 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       if (m < numMonths) monthCounts[m]++;
     }
 
-    // Tendencia mensual acumulada
+    // Tendencia mensual (valores reales por mes)
     const monthlyTrend: { label: string; value: number }[] = [];
-    let cumMonth = 0;
     for (let m = 0; m < numMonths; m++) {
-      cumMonth += monthCounts[m];
-      monthlyTrend.push({ label: MONTHS_ES[m], value: cumMonth });
+      monthlyTrend.push({ label: MONTHS_ES[m], value: monthCounts[m] });
     }
 
-    // Tendencia semanal acumulada (año actual)
-    const approvedWithDate = courses.filter(c => {
-      const e = String(c.Estado ?? '').trim();
-      return (e === 'Aprobado DI' || e === 'Aprobado');
-    });
+    // Tendencia semanal (valores reales por semana, año actual)
+    const MES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     const getWeekOfYear = (d: Date): number =>
       Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 1).getTime()) / (7 * 86400000));
+    const weekRangeLabel = (year: number, wk: number): string => {
+      const jan1 = new Date(year, 0, 1);
+      const start = new Date(jan1.getTime() + wk * 7 * 86400000);
+      const end   = new Date(jan1.getTime() + wk * 7 * 86400000 + 6 * 86400000);
+      const sd = start.getDate(), sm = MES_CORTO[start.getMonth()];
+      const ed = end.getDate(),   em = MES_CORTO[end.getMonth()];
+      return start.getMonth() === end.getMonth()
+        ? `${sd}-${ed} ${sm}`
+        : `${sd} ${sm}-${ed} ${em}`;
+    };
     const currentWeek = getWeekOfYear(now);
     const weekBuckets: number[] = Array(currentWeek + 1).fill(0);
-    for (const c of approvedWithDate) {
+    for (const c of courses) {
+      const e = String(c.Estado ?? '').trim();
+      if (e !== 'Aprobado DI' && e !== 'Aprobado') continue;
       const d = parseDate(c['Fecha fin revisión DI']);
       if (!d || d.getFullYear() !== currentYear) continue;
       const wk = getWeekOfYear(d);
@@ -265,12 +272,8 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     }
     const firstNonZero = weekBuckets.findIndex(v => v > 0);
     const weeklyTrend: { label: string; value: number }[] = [];
-    let cumWeek = 0;
-    for (let i = 0; i <= currentWeek; i++) {
-      cumWeek += weekBuckets[i];
-      if (i >= firstNonZero && firstNonZero >= 0) {
-        weeklyTrend.push({ label: `S${i + 1}`, value: cumWeek });
-      }
+    for (let i = firstNonZero; firstNonZero >= 0 && i <= currentWeek; i++) {
+      weeklyTrend.push({ label: weekRangeLabel(currentYear, i), value: weekBuckets[i] });
     }
 
     // Nivel stats
@@ -740,7 +743,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             color="#2563eb"
           />
           <p className="text-[10px] text-gray-400 text-center mt-1">
-            {trendMode === 'semanal' ? 'Aprobaciones acumuladas por semana' : 'Aprobaciones acumuladas por mes'}
+            {trendMode === 'semanal' ? 'Cursos aprobados por semana' : 'Cursos aprobados por mes'}
           </p>
         </Card>
       </div>
