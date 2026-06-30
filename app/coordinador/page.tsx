@@ -360,7 +360,7 @@ export default function CoordinadorPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-base font-bold text-gray-900">Coordinación de cursos</h1>
+              <h1 className="text-base font-bold text-gray-900">Coordinación de gestión de contenido</h1>
               <p className="text-xs text-gray-500">{session?.user?.name} · Coordinador</p>
             </div>
           </div>
