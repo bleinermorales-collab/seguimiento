@@ -474,6 +474,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
               { label: '% de avance aprobado',    desc: 'Aprobados / total de cursos',          pct: s.total > 0 ? Math.round(s.aprobados / s.total * 100) : 0,                         color: '#16a34a', track: '#dcfce7', val: s.aprobados },
               { label: '% pendiente de iniciar',  desc: 'No iniciados / total de cursos',        pct: s.total > 0 ? Math.round(s.noIniciados / s.total * 100) : 0,                       color: '#dc2626', track: '#fee2e2', val: s.noIniciados },
               { label: '% en proceso',             desc: 'En revisión + corrección / total',      pct: s.total > 0 ? Math.round((s.enRevision + s.enCorreccion) / s.total * 100) : 0,    color: '#2563eb', track: '#dbeafe', val: s.enRevision + s.enCorreccion },
+              { label: '% cursos cargados',        desc: 'Cargados / total de cursos',            pct: s.total > 0 ? Math.round(s.cargados / s.total * 100) : 0,                          color: '#0891b2', track: '#cffafe', val: s.cargados },
             ].map(m => {
               const r = 30, cx = 38, cy = 38;
               const circ = 2 * Math.PI * r;
