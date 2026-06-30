@@ -32,7 +32,13 @@ const COL_ALIASES: Record<string, string[]> = {
 };
 
 function normalizeColName(name: string): string {
-  return name.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  return String(name)
+    .replace(/ | | |​| | | | |﻿/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
 }
 
 function getWorkbook(): XLSX.WorkBook {
@@ -170,7 +176,7 @@ export function updateCourse(nivel: string, asignatura: string, updates: Record<
   const normProg = programa ? normalizeColName(programa) : null;
   const normNE = nombreElectiva ? normalizeColName(nombreElectiva) : null;
 
-  const logicalIdx = data.findIndex((r) => {
+  let logicalIdx = data.findIndex((r) => {
     const rowAsig = normalizeColName(String(r['Asignatura'] ?? ''));
     const rowProg = normalizeColName(String(r._programa ?? ''));
     if (rowAsig !== normAsig) return false;
@@ -181,6 +187,19 @@ export function updateCourse(nivel: string, asignatura: string, updates: Record<
     }
     return true;
   });
+
+  // Fallback: si no encontró con filtro de programa, buscar solo por asignatura
+  if (logicalIdx === -1 && normProg) {
+    logicalIdx = data.findIndex((r) => {
+      const rowAsig = normalizeColName(String(r['Asignatura'] ?? ''));
+      if (rowAsig !== normAsig) return false;
+      if (normNE) {
+        const rowNE = normalizeColName(String(r['Nombre electiva'] ?? ''));
+        return rowNE === normNE;
+      }
+      return true;
+    });
+  }
 
   if (logicalIdx === -1) return false;
 

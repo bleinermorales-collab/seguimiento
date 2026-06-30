@@ -35,7 +35,13 @@ function getSheetsClient() {
 }
 
 function normalizeColName(name: string): string {
-  return name.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  return name
+    .replace(/[       ﻿]/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
 }
 
 function colToLetter(col: number): string {
@@ -241,9 +247,25 @@ async function updateGoogleSheet(
       currentPrograma = row[programaColIdx].trim();
     }
     if (normalizeColName(row[asignaturaColIdx] ?? '') === normAsig) {
-      if (!normProg || normalizeColName(currentPrograma) === normProg) {
+      if (!normProg || programaColIdx === -1 || normalizeColName(currentPrograma) === normProg) {
         if (!normNE || (nombreElectivaColIdx >= 0 && normalizeColName(row[nombreElectivaColIdx] ?? '') === normNE)) {
           targetRowIdx = i;
+          break;
+        }
+      }
+    }
+  }
+
+  // Fallback: si no encontró con filtro de programa, buscar solo por asignatura
+  // (cubre el caso donde el nombre de programa en la hoja difiere ligeramente)
+  if (targetRowIdx === -1 && normProg) {
+    currentPrograma = '';
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (normalizeColName(row[asignaturaColIdx] ?? '') === normAsig) {
+        if (!normNE || (nombreElectivaColIdx >= 0 && normalizeColName(row[nombreElectivaColIdx] ?? '') === normNE)) {
+          targetRowIdx = i;
+          console.warn(`[sheets] Curso "${asignatura}" encontrado solo por asignatura (programa en hoja: "${currentPrograma}", esperado: "${programa}")`);
           break;
         }
       }
