@@ -295,12 +295,12 @@ export default function AdminPage() {
           <>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
               {[
-                { label: 'Total cursos', value: courses.length, color: 'text-gray-900' },
-                { label: 'Cargados', value: courses.filter(c => String(c.Estado ?? '').trim() === 'Cargado').length, color: 'text-purple-600' },
-                { label: 'En proceso', value: courses.filter(c => c.Estado === 'En proceso').length, color: 'text-blue-600' },
-                { label: 'En revisión', value: courses.filter(c => c.Estado === 'En revisión').length, color: 'text-yellow-600' },
-                { label: 'Corrección', value: courses.filter(c => c.Estado === 'Corrección').length, color: 'text-red-600' },
-                { label: 'Aprobados', value: courses.filter(c => c.Estado === 'Aprobado DI' || c['Estado curso'] === 'Aprobado').length, color: 'text-green-600' },
+                { label: 'Total cursos', value: filtered.length, color: 'text-gray-900' },
+                { label: 'Cargados', value: filtered.filter(c => String(c.Estado ?? '').trim() === 'Cargado').length, color: 'text-purple-600' },
+                { label: 'En proceso', value: filtered.filter(c => c.Estado === 'En proceso').length, color: 'text-blue-600' },
+                { label: 'En revisión', value: filtered.filter(c => c.Estado === 'En revisión').length, color: 'text-yellow-600' },
+                { label: 'Corrección', value: filtered.filter(c => c.Estado === 'Corrección').length, color: 'text-red-600' },
+                { label: 'Aprobados', value: filtered.filter(c => c.Estado === 'Aprobado DI' || c['Estado curso'] === 'Aprobado').length, color: 'text-green-600' },
               ].map(stat => (
                 <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-4">
                   <p className="text-xs text-gray-500 font-medium">{stat.label}</p>
