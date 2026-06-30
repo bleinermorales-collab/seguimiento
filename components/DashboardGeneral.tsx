@@ -284,8 +284,10 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       const correccion = nc.filter(c => String(c.Estado ?? '').trim() === 'Corrección').length;
       const noIniciado = nc.filter(isNoIniciado).length;
       const total = nc.length;
-      const pendiente = total - aprobado - enRevision - correccion - noIniciado;
-      return { nivel: n, total, aprobado, enRevision, correccion, noIniciado, pendiente };
+      const enProceso = nc.filter(c => String(c.Estado ?? '').trim() === 'En proceso').length;
+      const producido = nc.filter(c => String(c.Estado ?? '').trim() === 'Producido').length;
+      const cargado   = nc.filter(c => String(c.Estado ?? '').trim() === 'Cargado').length;
+      return { nivel: n, total, aprobado, enRevision, correccion, noIniciado, enProceso, producido, cargado };
     });
 
     // Prioritarios
@@ -505,7 +507,9 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             { color: '#2563eb', label: 'En revisión' },
             { color: '#ea580c', label: 'Corrección' },
             { color: '#374151', label: 'No iniciado' },
-            { color: '#7c3aed', label: 'Pendiente / sin clasificar' },
+            { color: '#f59e0b', label: 'En proceso' },
+            { color: '#7c3aed', label: 'Producido' },
+            { color: '#0891b2', label: 'Cargado' },
           ].map(l => (
             <div key={l.label} className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: l.color }} />
@@ -525,7 +529,9 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
                   { val: n.enRevision, color: '#2563eb' },
                   { val: n.correccion, color: '#ea580c' },
                   { val: n.noIniciado, color: '#374151' },
-                  { val: n.pendiente,  color: '#7c3aed' },
+                  { val: n.enProceso,  color: '#f59e0b' },
+                  { val: n.producido,  color: '#7c3aed' },
+                  { val: n.cargado,    color: '#0891b2' },
                 ];
                 return (
                   <div key={n.nivel} className="flex items-center gap-3">
@@ -558,7 +564,9 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
                 <th className="text-right font-semibold pb-2 px-3" style={{ color: '#2563eb' }}>En revisión</th>
                 <th className="text-right font-semibold pb-2 px-3" style={{ color: '#ea580c' }}>Corrección</th>
                 <th className="text-right text-gray-700 font-semibold pb-2 px-3">No iniciado</th>
-                <th className="text-right font-semibold pb-2 pl-3" style={{ color: '#7c3aed' }}>Pendiente / sin clasificar</th>
+                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#f59e0b' }}>En proceso</th>
+                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#7c3aed' }}>Producido</th>
+                <th className="text-right font-semibold pb-2 pl-3" style={{ color: '#0891b2' }}>Cargado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -570,7 +578,9 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
                   <td className="py-2 px-3 text-right font-bold" style={{ color: '#2563eb' }}>{n.enRevision}</td>
                   <td className="py-2 px-3 text-right font-bold" style={{ color: '#ea580c' }}>{n.correccion}</td>
                   <td className="py-2 px-3 text-right font-bold text-gray-700">{n.noIniciado}</td>
-                  <td className="py-2 pl-3 text-right font-bold" style={{ color: '#7c3aed' }}>{n.pendiente}</td>
+                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#f59e0b' }}>{n.enProceso}</td>
+                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#7c3aed' }}>{n.producido}</td>
+                  <td className="py-2 pl-3 text-right font-bold" style={{ color: '#0891b2' }}>{n.cargado}</td>
                 </tr>
               ))}
             </tbody>
@@ -582,7 +592,9 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
                 <td className="py-2 px-3 text-right font-bold" style={{ color: '#2563eb' }}>{s.nivelStats.reduce((a,n) => a+n.enRevision, 0)}</td>
                 <td className="py-2 px-3 text-right font-bold" style={{ color: '#ea580c' }}>{s.nivelStats.reduce((a,n) => a+n.correccion, 0)}</td>
                 <td className="py-2 px-3 text-right font-bold text-gray-700">{s.nivelStats.reduce((a,n) => a+n.noIniciado, 0)}</td>
-                <td className="py-2 pl-3 text-right font-bold" style={{ color: '#7c3aed' }}>{s.nivelStats.reduce((a,n) => a+n.pendiente, 0)}</td>
+                <td className="py-2 px-3 text-right font-bold" style={{ color: '#f59e0b' }}>{s.nivelStats.reduce((a,n) => a+n.enProceso, 0)}</td>
+                <td className="py-2 px-3 text-right font-bold" style={{ color: '#7c3aed' }}>{s.nivelStats.reduce((a,n) => a+n.producido, 0)}</td>
+                <td className="py-2 pl-3 text-right font-bold" style={{ color: '#0891b2' }}>{s.nivelStats.reduce((a,n) => a+n.cargado, 0)}</td>
               </tr>
             </tfoot>
           </table>
