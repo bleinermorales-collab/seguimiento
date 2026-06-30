@@ -69,15 +69,13 @@ export async function POST(req: NextRequest) {
     }
 
     const ok = await updateCourse(nivel, curso, updates, programa, nombreElectiva || undefined);
-    if (!ok) {
-      return NextResponse.json({ error: `No se encontró el curso "${curso}" en la hoja ${nivel}` }, { status: 404 });
-    }
 
     if (estadoId === 'enviado' && link?.trim()) {
       setLinkGestor(nivel, programa, curso, link.trim());
     }
 
-    // Notificaciones
+    // Notificaciones — se envían siempre que la acción sea válida,
+    // independiente de si el sheet se actualizó (para que coordinadores siempre sean notificados)
     const baseRecipients = NOTIF_BASE[estadoId] ?? [];
     if (baseRecipients.length > 0) {
       // FROM: el correo de quien tomó la acción
@@ -116,6 +114,11 @@ export async function POST(req: NextRequest) {
         fromEmail,
         fromName: responsable,
       }).catch(err => console.error('[api/update] email error:', err));
+    }
+
+    if (!ok) {
+      console.error(`[api/update] updateCourse falló para "${curso}" (nivel: ${nivel}, programa: ${programa}) — el email fue enviado igualmente`);
+      return NextResponse.json({ error: `No se encontró el curso "${curso}" en la hoja ${nivel}` }, { status: 404 });
     }
 
     return NextResponse.json({ success: true, updatedFields: Object.keys(updates) });
