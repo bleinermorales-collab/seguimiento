@@ -76,6 +76,10 @@ function diasClass(dias: number | null): string {
   if (dias <= 20) return 'text-orange-700 font-semibold';
   return 'text-red-700 font-semibold';
 }
+function formatDate(d: Date | null): string {
+  if (!d) return '—';
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
 
 export default function CoordinadorDIPage() {
   const { data: session } = useSession();
@@ -87,6 +91,8 @@ export default function CoordinadorDIPage() {
   const [filterEstado, setFilterEstado] = useState('');
   const [filterModalidad, setFilterModalidad] = useState('');
   const [filterSemestre, setFilterSemestre] = useState('');
+  const [filterFechaDesde, setFilterFechaDesde] = useState('');
+  const [filterFechaHasta, setFilterFechaHasta] = useState('');
   const [saving, setSaving] = useState<string | null>(null);
   const [sendingReport, setSendingReport] = useState(false);
   const [reportMsg, setReportMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -107,6 +113,12 @@ export default function CoordinadorDIPage() {
     if (filterEstado && String(c.Estado ?? '').trim() !== filterEstado) return false;
     if (filterModalidad && String(c._modalidad ?? '').trim() !== filterModalidad) return false;
     if (filterSemestre && String(c.Semestre ?? '').trim() !== filterSemestre) return false;
+    if (filterFechaDesde || filterFechaHasta) {
+      const fa = parseDate(c['Fecha de asignación']);
+      if (!fa) return false;
+      if (filterFechaDesde && fa < new Date(filterFechaDesde)) return false;
+      if (filterFechaHasta && fa > new Date(filterFechaHasta + 'T23:59:59')) return false;
+    }
     const q = norm(search);
     if (q && !norm(c.Asignatura ?? '').includes(q) && !norm(c._programa ?? '').includes(q)) return false;
     return true;
@@ -336,6 +348,27 @@ export default function CoordinadorDIPage() {
             <option value="">Todos los semestres</option>
             {semestres.map(s => <option key={s} value={s}>Semestre {s}</option>)}
           </select>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400 whitespace-nowrap">Fecha asig.</span>
+            <input
+              type="date"
+              value={filterFechaDesde}
+              onChange={e => setFilterFechaDesde(e.target.value)}
+              className="px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              title="Desde"
+            />
+            <span className="text-xs text-gray-400">—</span>
+            <input
+              type="date"
+              value={filterFechaHasta}
+              onChange={e => setFilterFechaHasta(e.target.value)}
+              className="px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              title="Hasta"
+            />
+            {(filterFechaDesde || filterFechaHasta) && (
+              <button onClick={() => { setFilterFechaDesde(''); setFilterFechaHasta(''); }} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+            )}
+          </div>
         </div>
 
         {loading ? (
@@ -400,12 +433,12 @@ export default function CoordinadorDIPage() {
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <div className="min-w-[750px]">
-                    <div className="grid grid-cols-[150px_250px_1fr_130px_70px_150px_110px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                    <div className="grid grid-cols-[150px_250px_1fr_130px_100px_150px_110px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
                       <span>Gestor</span>
-                      <span>Días</span>
+                      <span>Fecha asignación</span>
                       <span>DI asignado</span>
                       <span>Acción</span>
                     </div>
@@ -415,9 +448,9 @@ export default function CoordinadorDIPage() {
                           No hay cursos en revisión con DI asignado.
                         </div>
                       ) : asignados.map((c, i) => {
-                        const dAS = diasDesde(parseDate(c['Fecha de asignación']));
+                        const fechaAsig = parseDate(c['Fecha de asignación']);
                         return (
-                          <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_70px_150px_110px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
+                          <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_100px_150px_110px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                             <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
                             <div className="min-w-0">
                               <p className="text-xs text-gray-500 truncate">{c._programa}</p>
@@ -433,7 +466,7 @@ export default function CoordinadorDIPage() {
                               )}
                             </div>
                             <span className="text-xs text-gray-500 truncate">{gestorActual(c) || '—'}</span>
-                            <span className={`text-xs ${diasClass(dAS)}`}>{diasBadge(dAS)}</span>
+                            <span className="text-xs text-gray-600 whitespace-nowrap">{formatDate(fechaAsig)}</span>
                             <span className="text-xs font-medium text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full truncate border border-violet-200" title={diActual(c)}>
                               {diActual(c)}
                             </span>
