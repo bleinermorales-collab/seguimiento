@@ -32,7 +32,7 @@ interface Curso {
   'Nombre electiva'?: string;
 }
 
-type TabId = 'todos' | 'asignar' | 'asignados' | 'devueltos';
+type TabId = 'todos' | 'asignar' | 'asignados' | 'aprobados' | 'devueltos';
 
 function isPriority(c: Curso): boolean {
   const val = String(c['Prioridad'] ?? c['PRIORIDAD'] ?? '').trim();
@@ -202,12 +202,16 @@ export default function CoordinadorPage() {
   const sinAsignarCount = cursos.filter(c => isSinIniciar(c) && !gestorActual(c)).length;
   const devueltos = sortByDate(applyFilters(cursos.filter(isDevuelto)), getLastStateDate);
   const devueltosTotal = cursos.filter(isDevuelto).length;
-  // Tab "Asignados": todos los cursos con gestor asignado (cualquier estado)
+  const isAprobadoFinal = (c: Curso) => { const e = String(c.Estado ?? '').trim(); return e === 'Aprobado DI' || e === 'Aprobado' || e === 'Producido' || e === 'Cargado'; };
+  // Tab "Asignados": cursos con gestor, no aprobados/producidos/cargados aún
   const asignados = sortByDate(
-    applyFilters(cursos.filter(c => Boolean(gestorActual(c)))),
+    applyFilters(cursos.filter(c => Boolean(gestorActual(c)) && !isAprobadoFinal(c))),
     getLastStateDate
   );
-  const asignadosTotal = cursos.filter(c => Boolean(gestorActual(c))).length;
+  const asignadosTotal = cursos.filter(c => Boolean(gestorActual(c)) && !isAprobadoFinal(c)).length;
+  // Tab "Aprobados": cursos en estado Aprobado DI / Aprobado / Producido / Cargado
+  const aprobadosTab = sortByDate(applyFilters(cursos.filter(isAprobadoFinal)), c => parseDate(c['Fecha fin revisión DI']));
+  const aprobadosTotal = cursos.filter(isAprobadoFinal).length;
 
 
   const handleModalConfirm = async () => {
@@ -423,6 +427,23 @@ export default function CoordinadorPage() {
               Asignados
               <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${activeTab === 'asignados' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
                 {asignadosTotal}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('aprobados')}
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                activeTab === 'aprobados'
+                  ? 'border-green-600 text-green-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+              Aprobados
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${activeTab === 'aprobados' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                {aprobadosTotal}
               </span>
             </button>
 
@@ -730,6 +751,7 @@ export default function CoordinadorPage() {
             {activeTab === 'todos' ? `${todosFiltered.length} cursos`
               : activeTab === 'asignar' ? `${sinIniciar.length} sin iniciar`
               : activeTab === 'asignados' ? `${asignados.length} asignados`
+              : activeTab === 'aprobados' ? `${aprobadosTab.length} aprobados`
               : `${devueltos.length} devueltos`}
           </span>
           <button
@@ -977,6 +999,66 @@ export default function CoordinadorPage() {
                             <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full truncate border border-emerald-200" title={actual}>{actual}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${ESTADO_BADGE[estado] || 'bg-gray-100 text-gray-600'}`}>{estado}</span>
                             <span className={`text-xs font-semibold ${diasClass(dias)}`}>{diasBadge(dias)}</span>
+                            <button
+                              onClick={() => setTracking(c)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition whitespace-nowrap"
+                            >
+                              <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              Fechas
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB: APROBADOS ── */}
+            {activeTab === 'aprobados' && (
+              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <div className="min-w-[1200px]">
+                    <div className="grid grid-cols-[160px_260px_1fr_160px_120px_120px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                      <span>Nivel</span>
+                      <span>Programa</span>
+                      <span>Asignatura</span>
+                      <span>Gestor</span>
+                      <span>Estado</span>
+                      <span>Fecha aprobación</span>
+                      <span>Acción</span>
+                    </div>
+                    <div className="divide-y divide-gray-50">
+                      {aprobadosTab.length === 0 ? (
+                        <div className="text-center py-12 text-gray-400 text-sm">No hay cursos aprobados con los filtros actuales.</div>
+                      ) : aprobadosTab.map((c, i) => {
+                        const actual = gestorActual(c);
+                        const estado = String(c.Estado ?? '').trim();
+                        const priority = isPriority(c);
+                        const fechaAprobacion = parseDate(c['Fecha fin revisión DI']);
+                        const estadoBadge: Record<string, string> = {
+                          'Aprobado DI': 'bg-green-100 text-green-700',
+                          'Aprobado':    'bg-green-100 text-green-700',
+                          'Producido':   'bg-purple-100 text-purple-700',
+                          'Cargado':     'bg-gray-100 text-gray-600',
+                        };
+                        return (
+                          <div key={i} className={`grid grid-cols-[160px_260px_1fr_160px_120px_120px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-green-50/20' : ''}`}>
+                            <span className="text-xs text-gray-400">{c._nivel}</span>
+                            <span className="text-xs text-gray-500 truncate">{c._programa}</span>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {priority && <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>}
+                                <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                              </div>
+                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
+                            </div>
+                            <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full truncate border border-emerald-200" title={actual}>{actual || '—'}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${estadoBadge[estado] || 'bg-gray-100 text-gray-600'}`}>{estado}</span>
+                            <span className="text-xs text-gray-500">{formatDate(fechaAprobacion)}</span>
                             <button
                               onClick={() => setTracking(c)}
                               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition whitespace-nowrap"
