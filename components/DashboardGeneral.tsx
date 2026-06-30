@@ -138,6 +138,46 @@ function KpiCard({ label, value, color }: { label: string; value: number | strin
   );
 }
 
+// ── Line chart (pure SVG, no deps) ────────────────────────────────────────────
+function LineChart({ data, color = '#2563eb' }: { data: { label: string; value: number }[]; color?: string }) {
+  if (!data.length) return <p className="text-xs text-gray-400 text-center py-8">Sin datos</p>;
+  const W = 560; const H = 180; const PAD = { t: 16, r: 16, b: 40, l: 50 };
+  const gW = W - PAD.l - PAD.r; const gH = H - PAD.t - PAD.b;
+  const maxV = Math.max(...data.map(d => d.value), 1);
+  const xs = data.map((_, i) => PAD.l + (gW / Math.max(data.length - 1, 1)) * i);
+  const ys = data.map(d => PAD.t + gH - (d.value / maxV) * gH);
+  const linePath = data.map((_, i) => `${i === 0 ? 'M' : 'L'}${xs[i].toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+  const areaPath = `${linePath} L${xs[xs.length - 1].toFixed(1)},${(PAD.t + gH).toFixed(1)} L${PAD.l},${(PAD.t + gH).toFixed(1)} Z`;
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(r => ({ v: Math.round(r * maxV), y: PAD.t + gH - r * gH }));
+  const step = Math.max(1, Math.ceil(data.length / 8));
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+      {yTicks.map(t => (
+        <g key={t.v}>
+          <line x1={PAD.l} x2={W - PAD.r} y1={t.y} y2={t.y} stroke="#f3f4f6" strokeWidth="1" />
+          <text x={PAD.l - 6} y={t.y + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{t.v}</text>
+        </g>
+      ))}
+      <defs>
+        <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.18" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.01" />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill="url(#areaFill)" />
+      <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      {data.map((d, i) => (
+        <g key={i}>
+          <circle cx={xs[i]} cy={ys[i]} r="3.5" fill="white" stroke={color} strokeWidth="2" />
+          {i % step === 0 && (
+            <text x={xs[i]} y={H - 10} textAnchor="middle" fontSize="9" fill="#6b7280">{d.label}</text>
+          )}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 // ── Section card ──────────────────────────────────────────────────────────────
 function Card({ title, children, className = '' }: { title?: string; children: React.ReactNode; className?: string }) {
   return (
@@ -151,6 +191,7 @@ function Card({ title, children, className = '' }: { title?: string; children: R
 // ─────────────────────────────────────────────────────────────────────────────
 export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) {
   const [showPrioModal, setShowPrioModal] = useState(false);
+  const [trendMode, setTrendMode] = useState<'semanal' | 'mensual'>('semanal');
   const s = useMemo(() => {
     const total = courses.length;
     const aprobados = courses.filter(isAprobado).length;
@@ -187,19 +228,49 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     // Aprobaciones por mes (desde enero del año actual, solo Estado === 'Aprobado DI')
     const now = new Date();
     const currentYear = now.getFullYear();
-    const numMonths = now.getMonth() + 1; // enero=1 mes, junio=6 meses, etc.
+    const numMonths = now.getMonth() + 1;
     const monthCounts = Array(numMonths).fill(0);
     const monthLabels: string[] = [];
-    for (let m = 0; m < numMonths; m++) {
-      monthLabels.push(MONTHS_ES[m]);
-    }
+    for (let m = 0; m < numMonths; m++) monthLabels.push(MONTHS_ES[m]);
     for (const c of courses) {
       if (String(c.Estado ?? '').trim() !== 'Aprobado DI') continue;
       const d = parseDate(c['Fecha fin revisión DI']);
-      if (!d) continue;
-      if (d.getFullYear() !== currentYear) continue;
-      const m = d.getMonth(); // 0=enero
+      if (!d || d.getFullYear() !== currentYear) continue;
+      const m = d.getMonth();
       if (m < numMonths) monthCounts[m]++;
+    }
+
+    // Tendencia mensual acumulada
+    const monthlyTrend: { label: string; value: number }[] = [];
+    let cumMonth = 0;
+    for (let m = 0; m < numMonths; m++) {
+      cumMonth += monthCounts[m];
+      monthlyTrend.push({ label: MONTHS_ES[m], value: cumMonth });
+    }
+
+    // Tendencia semanal acumulada (año actual)
+    const approvedWithDate = courses.filter(c => {
+      const e = String(c.Estado ?? '').trim();
+      return (e === 'Aprobado DI' || e === 'Aprobado');
+    });
+    const getWeekOfYear = (d: Date): number =>
+      Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 1).getTime()) / (7 * 86400000));
+    const currentWeek = getWeekOfYear(now);
+    const weekBuckets: number[] = Array(currentWeek + 1).fill(0);
+    for (const c of approvedWithDate) {
+      const d = parseDate(c['Fecha fin revisión DI']);
+      if (!d || d.getFullYear() !== currentYear) continue;
+      const wk = getWeekOfYear(d);
+      if (wk >= 0 && wk <= currentWeek) weekBuckets[wk]++;
+    }
+    const firstNonZero = weekBuckets.findIndex(v => v > 0);
+    const weeklyTrend: { label: string; value: number }[] = [];
+    let cumWeek = 0;
+    for (let i = 0; i <= currentWeek; i++) {
+      cumWeek += weekBuckets[i];
+      if (i >= firstNonZero && firstNonZero >= 0) {
+        weeklyTrend.push({ label: `S${i + 1}`, value: cumWeek });
+      }
     }
 
     // Nivel stats
@@ -258,7 +329,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       tRevDI: avg(tRevDI).toFixed(1),
       tCorr: avg(tCorr).toFixed(1),
       tTotal: avg(tTotal).toFixed(1),
-      monthCounts, monthLabels,
+      monthCounts, monthLabels, monthlyTrend, weeklyTrend,
       nivelStats,
       prioAll: prioAll.length, prioAprobados, prioRevision, prioCorreccion, prioNoIniciados, prioNoIniciadosList,
       prioByNivel,
@@ -646,6 +717,33 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
         </Card>
       </div>
     </div>
+
+      {/* Tendencia de aprobaciones */}
+      <div className="mt-4">
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Tendencia de aprobaciones</p>
+            <div className="flex gap-1">
+              {(['semanal', 'mensual'] as const).map(m => (
+                <button
+                  key={m}
+                  onClick={() => setTrendMode(m)}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${trendMode === m ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                >
+                  {m.charAt(0).toUpperCase() + m.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <LineChart
+            data={trendMode === 'semanal' ? s.weeklyTrend : s.monthlyTrend}
+            color="#2563eb"
+          />
+          <p className="text-[10px] text-gray-400 text-center mt-1">
+            {trendMode === 'semanal' ? 'Aprobaciones acumuladas por semana' : 'Aprobaciones acumuladas por mes'}
+          </p>
+        </Card>
+      </div>
 
       {/* Modal: prioritarios sin iniciar */}
       {showPrioModal && (
