@@ -192,6 +192,9 @@ function Card({ title, children, className = '' }: { title?: string; children: R
 export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) {
   const [showPrioModal, setShowPrioModal] = useState(false);
   const [trendMode, setTrendMode] = useState<'semanal' | 'mensual'>('semanal');
+  const [avanceModal, setAvanceModal] = useState<null | 'pendiente' | 'proceso' | 'aprobado' | 'cargado'>(null);
+  const [avanceNivel, setAvanceNivel] = useState('');
+  const [avanceSearch, setAvanceSearch] = useState('');
   const s = useMemo(() => {
     const total = courses.length;
     const aprobados = courses.filter(isAprobado).length;
@@ -469,31 +472,33 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
 
         {/* Avance general */}
         <Card title="Avance general">
-          <div className="space-y-5">
-            {[
-              { label: '% de avance aprobado',    desc: 'Aprobados / total de cursos',          pct: s.total > 0 ? Math.round(s.aprobados / s.total * 100) : 0,                         color: '#16a34a', track: '#dcfce7', val: s.aprobados },
-              { label: '% pendiente de iniciar',  desc: 'No iniciados / total de cursos',        pct: s.total > 0 ? Math.round(s.noIniciados / s.total * 100) : 0,                       color: '#dc2626', track: '#fee2e2', val: s.noIniciados },
-              { label: '% en proceso',             desc: 'En revisión + corrección / total',      pct: s.total > 0 ? Math.round((s.enRevision + s.enCorreccion) / s.total * 100) : 0,    color: '#2563eb', track: '#dbeafe', val: s.enRevision + s.enCorreccion },
-              { label: '% cursos cargados',        desc: 'Cargados / total de cursos',            pct: s.total > 0 ? Math.round(s.cargados / s.total * 100) : 0,                          color: '#0891b2', track: '#cffafe', val: s.cargados },
-            ].map(m => {
-              const r = 30, cx = 38, cy = 38;
+          <div className="grid grid-cols-2 gap-4">
+            {([
+              { key: 'pendiente', label: 'Pendiente',  desc: 'No iniciados',               pct: s.total > 0 ? Math.round(s.noIniciados / s.total * 100) : 0,                      color: '#dc2626', track: '#fee2e2', val: s.noIniciados },
+              { key: 'proceso',   label: 'En proceso', desc: 'En revisión + corrección',    pct: s.total > 0 ? Math.round((s.enRevision + s.enCorreccion) / s.total * 100) : 0,   color: '#2563eb', track: '#dbeafe', val: s.enRevision + s.enCorreccion },
+              { key: 'aprobado',  label: 'Aprobado',   desc: 'Aprobados',                   pct: s.total > 0 ? Math.round(s.aprobados / s.total * 100) : 0,                        color: '#16a34a', track: '#dcfce7', val: s.aprobados },
+              { key: 'cargado',   label: 'Cargado',    desc: 'Cargados al LMS',             pct: s.total > 0 ? Math.round(s.cargados / s.total * 100) : 0,                         color: '#0891b2', track: '#cffafe', val: s.cargados },
+            ] as { key: 'pendiente'|'proceso'|'aprobado'|'cargado'; label: string; desc: string; pct: number; color: string; track: string; val: number }[]).map(m => {
+              const r = 36, cx = 46, cy = 46;
               const circ = 2 * Math.PI * r;
               const dash = (m.pct / 100) * circ;
               return (
-                <div key={m.label} className="flex items-center gap-4">
-                  <svg width="76" height="76" className="shrink-0">
-                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={m.track} strokeWidth="7" />
-                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={m.color} strokeWidth="7"
+                <div key={m.key} className="flex flex-col items-center text-center gap-2">
+                  <svg width="92" height="92">
+                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={m.track} strokeWidth="8" />
+                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={m.color} strokeWidth="8"
                       strokeLinecap="round"
                       strokeDasharray={`${dash} ${circ}`}
                       style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }} />
-                    <text x={cx} y={cy + 5} textAnchor="middle" fontSize="14" fontWeight="bold" fill={m.color}>{m.pct}%</text>
+                    <text x={cx} y={cy + 5} textAnchor="middle" fontSize="15" fontWeight="bold" fill={m.color}>{m.pct}%</text>
                   </svg>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-gray-800 leading-tight">{m.label}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{m.desc}</p>
-                    <p className="text-sm font-bold mt-1.5" style={{ color: m.color }}>{m.val.toLocaleString('es-CO')} cursos</p>
-                  </div>
+                  <p className="text-xs font-bold text-gray-800 leading-tight">{m.label}</p>
+                  <p className="text-sm font-bold leading-none" style={{ color: m.color }}>{m.val.toLocaleString('es-CO')}</p>
+                  <p className="text-[10px] text-gray-400 leading-tight">{m.desc}</p>
+                  <button
+                    onClick={() => { setAvanceModal(m.key); setAvanceNivel(''); setAvanceSearch(''); }}
+                    className="text-[10px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition"
+                  >Ver lista</button>
                 </div>
               );
             })}
@@ -762,6 +767,107 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           </p>
         </Card>
       </div>
+
+      {/* Modal: avance general — listado por programa */}
+      {avanceModal && (() => {
+        const MODAL_TITLES: Record<string, string> = {
+          pendiente: 'Cursos pendientes de iniciar',
+          proceso:   'Cursos en proceso (revisión + corrección)',
+          aprobado:  'Cursos aprobados',
+          cargado:   'Cursos cargados',
+        };
+        const NIVELES_FILTER = ['Pregrado', 'Especializaciones', 'Maestrías', 'Doctorado'];
+        const filtered = courses.filter(c => {
+          const e = String(c.Estado ?? '').trim();
+          const match =
+            avanceModal === 'pendiente' ? isNoIniciado(c) :
+            avanceModal === 'proceso'   ? (isEnRevision(c) || e === 'Corrección') :
+            avanceModal === 'aprobado'  ? isAprobado(c) :
+            e === 'Cargado';
+          if (!match) return false;
+          if (avanceNivel && c._nivel !== avanceNivel) return false;
+          if (avanceSearch) {
+            const q = avanceSearch.toLowerCase();
+            const asig = String(c.Asignatura ?? '').toLowerCase();
+            const prog = String(c._programa ?? '').toLowerCase();
+            if (!asig.includes(q) && !prog.includes(q)) return false;
+          }
+          return true;
+        });
+        const byPrograma: Record<string, typeof filtered> = {};
+        for (const c of filtered) {
+          const p = String(c._programa ?? '—').trim();
+          if (!byPrograma[p]) byPrograma[p] = [];
+          byPrograma[p].push(c);
+        }
+        const programas = Object.keys(byPrograma).sort();
+        return (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50"
+            onClick={e => { if (e.target === e.currentTarget) setAvanceModal(null); }}>
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">{MODAL_TITLES[avanceModal]}</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">{filtered.length} curso{filtered.length !== 1 ? 's' : ''}</p>
+                </div>
+                <button onClick={() => setAvanceModal(null)} className="text-gray-400 hover:text-gray-600 transition">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="px-6 pt-3 pb-2 flex flex-col gap-2">
+                {/* Filtro nivel */}
+                <div className="flex gap-1.5 flex-wrap">
+                  <button onClick={() => setAvanceNivel('')}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition ${avanceNivel === '' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                    Todos
+                  </button>
+                  {NIVELES_FILTER.map(n => (
+                    <button key={n} onClick={() => setAvanceNivel(avanceNivel === n ? '' : n)}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition ${avanceNivel === n ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                {/* Buscador */}
+                <input
+                  type="text"
+                  placeholder="Buscar asignatura o programa..."
+                  value={avanceSearch}
+                  onChange={e => setAvanceSearch(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400"
+                />
+              </div>
+              <div className="overflow-y-auto flex-1 px-6 pb-4">
+                {programas.length === 0
+                  ? <p className="text-xs text-gray-400 text-center py-8">Sin resultados</p>
+                  : programas.map(prog => (
+                    <div key={prog} className="mb-4">
+                      <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 border-b border-gray-100 pb-1">{prog}</p>
+                      <ul className="space-y-1">
+                        {byPrograma[prog].map((c, i) => (
+                          <li key={i} className="flex items-start gap-2 text-xs">
+                            <span className="text-gray-300 mt-0.5">•</span>
+                            <span className="text-gray-800">{String(c.Asignatura ?? '—')}</span>
+                            <span className="text-gray-400 ml-auto shrink-0">{c._nivel}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))
+                }
+              </div>
+              <div className="px-6 py-3 border-t border-gray-100">
+                <button onClick={() => setAvanceModal(null)}
+                  className="w-full py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal: prioritarios sin iniciar */}
       {showPrioModal && (
