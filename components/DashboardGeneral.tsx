@@ -205,14 +205,13 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     // Nivel stats
     const nivelStats = NIVELES.map(n => {
       const nc = courses.filter(c => c._nivel === n);
-      return {
-        nivel: n,
-        total: nc.length,
-        aprobado: nc.filter(isAprobado).length,
-        enRevision: nc.filter(isEnRevision).length,
-        correccion: nc.filter(c => String(c.Estado ?? '').trim() === 'Corrección').length,
-        noIniciado: nc.filter(isNoIniciado).length,
-      };
+      const aprobado = nc.filter(isAprobado).length;
+      const enRevision = nc.filter(isEnRevision).length;
+      const correccion = nc.filter(c => String(c.Estado ?? '').trim() === 'Corrección').length;
+      const noIniciado = nc.filter(isNoIniciado).length;
+      const total = nc.length;
+      const pendiente = total - aprobado - enRevision - correccion - noIniciado;
+      return { nivel: n, total, aprobado, enRevision, correccion, noIniciado, pendiente };
     });
 
     // Prioritarios
@@ -303,7 +302,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
         <KpiCard label="Cargados"       value={s.cargados}     color="#0891b2" />
       </div>
 
-      {/* ── Row 2: Vista rápida | Distribución | Aprobaciones ── */}
+      {/* ── Row 2: Vista rápida | Aprobaciones ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Vista rápida */}
@@ -353,25 +352,6 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           </div>
         </Card>
 
-        {/* Distribución por nivel */}
-        <Card title="Distribución por nivel y estado">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            {s.nivelStats.map(n => (
-              <div key={n.nivel}>
-                <p className="text-xs font-bold mb-2" style={{ color: NIVEL_COLORS[n.nivel] }}>
-                  {NIVEL_SHORT[n.nivel]} {n.total}
-                </p>
-                <div className="space-y-1 text-[11px]">
-                  <div className="flex justify-between text-gray-500"><span>Aprobado</span><span className="text-green-600 font-semibold">{n.aprobado}</span></div>
-                  <div className="flex justify-between text-gray-500"><span>En revisión</span><span className="text-blue-600 font-semibold">{n.enRevision}</span></div>
-                  <div className="flex justify-between text-gray-500"><span>Corrección</span><span className="text-orange-600 font-semibold">{n.correccion}</span></div>
-                  <div className="flex justify-between text-gray-500"><span>No iniciado</span><span className="text-gray-700 font-semibold">{n.noIniciado}</span></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
         {/* Aprobaciones por mes + tiempos */}
         <Card title="Aprobaciones por mes">
           <div className="flex items-end gap-1 h-28 mb-1">
@@ -409,6 +389,99 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           </div>
         </Card>
       </div>
+
+      {/* ── Distribución por nivel y estado (fila completa) ── */}
+      <Card title="Distribución por nivel y estado">
+        {/* Leyenda */}
+        <div className="flex flex-wrap gap-4 mb-5 text-[11px]">
+          {[
+            { color: '#16a34a', label: 'Aprobado' },
+            { color: '#2563eb', label: 'En revisión' },
+            { color: '#ea580c', label: 'Corrección' },
+            { color: '#374151', label: 'No iniciado' },
+            { color: '#7c3aed', label: 'Pendiente / sin clasificar' },
+          ].map(l => (
+            <div key={l.label} className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: l.color }} />
+              <span className="text-gray-600">{l.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Barras apiladas */}
+        {(() => {
+          const maxT = Math.max(...s.nivelStats.map(n => n.total), 1);
+          return (
+            <div className="space-y-2.5 mb-6">
+              {s.nivelStats.filter(n => n.total > 0).map(n => {
+                const segs = [
+                  { val: n.aprobado,   color: '#16a34a' },
+                  { val: n.enRevision, color: '#2563eb' },
+                  { val: n.correccion, color: '#ea580c' },
+                  { val: n.noIniciado, color: '#374151' },
+                  { val: n.pendiente,  color: '#7c3aed' },
+                ];
+                return (
+                  <div key={n.nivel} className="flex items-center gap-3">
+                    <span className="text-[11px] text-gray-600 w-40 shrink-0">{n.nivel} ({n.total})</span>
+                    <div className="flex-1 flex h-7 rounded overflow-hidden">
+                      {segs.map((seg, si) => seg.val > 0 && (
+                        <div key={si}
+                          className="flex items-center justify-center text-white text-[10px] font-bold overflow-hidden transition-all"
+                          style={{ width: `${(seg.val / maxT) * 100}%`, backgroundColor: seg.color, minWidth: '2px' }}>
+                          {seg.val / n.total > 0.04 ? seg.val : ''}
+                        </div>
+                      ))}
+                    </div>
+                    <span className="text-[11px] font-bold text-gray-700 w-10 text-right shrink-0">{n.total}</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* Tabla detallada */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-[11px]">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left text-gray-500 font-semibold pb-2 pr-4">Nivel</th>
+                <th className="text-right text-gray-700 font-semibold pb-2 px-3">Total</th>
+                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#16a34a' }}>Aprobado</th>
+                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#2563eb' }}>En revisión</th>
+                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#ea580c' }}>Corrección</th>
+                <th className="text-right text-gray-700 font-semibold pb-2 px-3">No iniciado</th>
+                <th className="text-right font-semibold pb-2 pl-3" style={{ color: '#7c3aed' }}>Pendiente / sin clasificar</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {s.nivelStats.map(n => (
+                <tr key={n.nivel} className="hover:bg-gray-50/60">
+                  <td className="py-2 pr-4 text-gray-700 font-medium">{n.nivel}</td>
+                  <td className="py-2 px-3 text-right font-bold text-gray-900">{n.total}</td>
+                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#16a34a' }}>{n.aprobado}</td>
+                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#2563eb' }}>{n.enRevision}</td>
+                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#ea580c' }}>{n.correccion}</td>
+                  <td className="py-2 px-3 text-right font-bold text-gray-700">{n.noIniciado}</td>
+                  <td className="py-2 pl-3 text-right font-bold" style={{ color: '#7c3aed' }}>{n.pendiente}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-gray-200">
+                <td className="py-2 pr-4 font-bold text-gray-900">Total</td>
+                <td className="py-2 px-3 text-right font-bold text-gray-900">{s.total}</td>
+                <td className="py-2 px-3 text-right font-bold" style={{ color: '#16a34a' }}>{s.nivelStats.reduce((a,n) => a+n.aprobado, 0)}</td>
+                <td className="py-2 px-3 text-right font-bold" style={{ color: '#2563eb' }}>{s.nivelStats.reduce((a,n) => a+n.enRevision, 0)}</td>
+                <td className="py-2 px-3 text-right font-bold" style={{ color: '#ea580c' }}>{s.nivelStats.reduce((a,n) => a+n.correccion, 0)}</td>
+                <td className="py-2 px-3 text-right font-bold text-gray-700">{s.nivelStats.reduce((a,n) => a+n.noIniciado, 0)}</td>
+                <td className="py-2 pl-3 text-right font-bold" style={{ color: '#7c3aed' }}>{s.nivelStats.reduce((a,n) => a+n.pendiente, 0)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </Card>
 
       {/* ── Row 3: Cursos prioritarios | Prioridades por nivel | Embudo ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
