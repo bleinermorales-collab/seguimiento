@@ -178,13 +178,23 @@ export default function DIPage() {
   const pendientes = sortByDate(cursosNivel.filter(c => {
     const estado = String(c.Estado ?? '').trim();
     const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
-    return (estado === 'En revisión' || estado === 'Enviado a revisión') && revalidacion !== 'En revalidación';
+    const fechaCorr = String(c['Fecha fin corrección gestor'] ?? c['Fecha fin corrección docente'] ?? '').trim();
+    // Show only first-time pending: "Enviado a revisión" or "En revisión" but NOT in revalidation
+    return (estado === 'En revisión' || estado === 'Enviado a revisión')
+      && revalidacion !== 'En revalidación'
+      && !fechaCorr;
   }), c => parseDate(c['Fin Gestor']));
   const aprobados = sortByDate(cursosNivel.filter(c => { const e = String(c.Estado ?? '').trim(); return e === 'Aprobado DI' || e === 'Aprobado'; }), c => parseDate(c['Fecha fin revisión DI']));
   const devueltos = sortByDate(cursosNivel.filter(c => {
     const estado = String(c.Estado ?? '').trim();
     const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
-    return estado === 'Corrección' || revalidacion === 'En revalidación';
+    const fechaCorr = String(c['Fecha fin corrección gestor'] ?? c['Fecha fin corrección docente'] ?? '').trim();
+    // "Corrección": DI devolvió (Estado updated by devuelto fix)
+    // "En revalidación": gestor ya corrigió, DI needs to re-review
+    // fallback: fechaCorr set + still in revisión (when revalidación column missing in sheet)
+    return estado === 'Corrección'
+      || revalidacion === 'En revalidación'
+      || (!!fechaCorr && (estado === 'En revisión' || estado === 'Enviado a revisión'));
   }), c => parseDate(c['Fecha fin revisión DI']));
 
   const tabs: { id: TabId; label: string; count: number; color: string; activeColor: string }[] = [

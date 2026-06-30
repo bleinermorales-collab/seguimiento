@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateCourse } from '@/lib/sheets';
-import { setLinkDI, getCourseLinks } from '@/lib/course-links';
+import { setLinkDI, setDI, getCourseLinks } from '@/lib/course-links';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { sendEmail, buildEmailHtml } from '@/lib/email';
@@ -34,6 +34,9 @@ export async function POST(req: NextRequest) {
     const ok = await updateCourse(nivel, curso, updates, programa, nombreElectiva || undefined);
     if (!ok) return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
 
+    // Always persist DI name + link in the JSON sidecar so my-courses works
+    // even when the Google Sheet column "DI asignado" doesn't exist.
+    setDI(nivel, programa, curso, di);
     if (link && link.trim()) {
       setLinkDI(nivel, programa, curso, link.trim());
     }

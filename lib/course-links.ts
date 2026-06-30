@@ -3,7 +3,7 @@ import path from 'path';
 
 const LINKS_PATH = path.join(process.cwd(), 'data', 'course-links.json');
 
-type LinksMap = Record<string, { linkDI?: string; linkGC?: string; linkGestor?: string }>;
+type LinksMap = Record<string, { linkDI?: string; linkGC?: string; linkGestor?: string; di?: string }>;
 
 function readLinks(): LinksMap {
   try {
@@ -50,6 +50,13 @@ export function setLinkGestor(nivel: string, programa: string, asignatura: strin
   writeLinks(data);
 }
 
+export function setDI(nivel: string, programa: string, asignatura: string, nombre: string): void {
+  const data = readLinks();
+  const k = courseKey(nivel, programa, asignatura);
+  data[k] = { ...data[k], di: nombre };
+  writeLinks(data);
+}
+
 export function mergeLinks(courses: Record<string, unknown>[]): Record<string, unknown>[] {
   const data = readLinks();
   return courses.map(c => {
@@ -62,6 +69,11 @@ export function mergeLinks(courses: Record<string, unknown>[]): Record<string, u
     if (links?.linkDI) patched['Link DI'] = links.linkDI;
     if (links?.linkGC) patched['Link'] = links.linkGC;
     if (links?.linkGestor) patched['Link Gestor'] = links.linkGestor;
+    // Inject DI name from sidecar if the sheet column is empty (e.g. before DI clicks "Iniciar revisión")
+    if (links?.di) {
+      const existing = String(patched['DI responsable'] ?? patched['DI Responsable'] ?? patched['DI responsable '] ?? '').trim();
+      if (!existing) patched['DI responsable'] = links.di;
+    }
     return patched;
   });
 }

@@ -79,6 +79,7 @@ export const ESTADOS_DI: EstadoOption[] = [
     badgeColor: 'red',
     registraLabel: null,
     updates: {
+      'Estado': 'Corrección',
       'Estado curso': 'Corrección',
       'Estado de la revalidación DI': 'En revalidación',
       'Fecha fin revisión DI': '__TODAY__',
