@@ -345,29 +345,19 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       prioByNivel,
       aprobadosSemana, aprobadosDia, tasaDirecta, enviadosSemana, enviadosDia,
 
-      // Metodología: cargados y pendientes por programa y modalidad
+      // Metodología: por modalidad — pendientes(no cargado/producido), producidos, cargados
       metodologia: (() => {
-        const buildTable = (subset: typeof courses) => {
-          const modalSet = new Set<string>();
-          const byProg: Record<string, Record<string, number>> = {};
-          for (const c of subset) {
-            const prog = String(c._programa ?? '—').trim();
-            const mod  = String(c._modalidad ?? '—').trim() || '—';
-            modalSet.add(mod);
-            if (!byProg[prog]) byProg[prog] = {};
-            byProg[prog][mod] = (byProg[prog][mod] ?? 0) + 1;
-          }
-          const modalidades = Array.from(modalSet).sort();
-          const programas = Object.keys(byProg).sort().map(prog => ({
-            prog, counts: byProg[prog],
-            total: Object.values(byProg[prog]).reduce((a, b) => a + b, 0),
-          }));
-          return { modalidades, programas };
-        };
-        return {
-          cargados:   buildTable(courses.filter(c => String(c.Estado ?? '').trim() === 'Cargado')),
-          pendientes: buildTable(courses.filter(isNoIniciado)),
-        };
+        const map: Record<string, { pendiente: number; producido: number; cargado: number }> = {};
+        for (const c of courses) {
+          const mod = String(c._modalidad ?? '—').trim() || '—';
+          if (!map[mod]) map[mod] = { pendiente: 0, producido: 0, cargado: 0 };
+          const e = String(c.Estado ?? '').trim();
+          if (e === 'Cargado')   map[mod].cargado++;
+          else if (e === 'Producido') map[mod].producido++;
+          else                        map[mod].pendiente++;
+        }
+        return Object.entries(map).sort(([a], [b]) => a.localeCompare(b))
+          .map(([mod, v]) => ({ mod, ...v, total: v.pendiente + v.producido + v.cargado }));
       })(),
     };
   }, [courses]);
@@ -744,53 +734,60 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
 
         {/* Metodología */}
         {(() => {
-          const MOD_COLOR: Record<string, string> = { 'Virtual': '#2563eb', 'Presencial': '#16a34a', 'Ambas': '#7c3aed' };
-          const MetTable = ({ data }: { data: { modalidades: string[]; programas: { prog: string; counts: Record<string,number>; total: number }[] } }) => (
-            <div className="overflow-auto max-h-56">
-              <table className="w-full text-[10.5px] border-collapse">
-                <thead className="sticky top-0 bg-white">
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left font-semibold text-gray-500 pb-1.5 pr-3">Programa</th>
-                    {data.modalidades.map(m => (
-                      <th key={m} className="text-right font-semibold pb-1.5 px-2 whitespace-nowrap" style={{ color: MOD_COLOR[m] ?? '#6b7280' }}>{m}</th>
-                    ))}
-                    <th className="text-right font-semibold text-gray-700 pb-1.5 pl-2">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {data.programas.map(({ prog, counts, total }) => (
-                    <tr key={prog} className="hover:bg-gray-50/60">
-                      <td className="py-1 pr-3 text-gray-700 font-medium leading-tight max-w-[110px] truncate" title={prog}>{prog}</td>
-                      {data.modalidades.map(m => (
-                        <td key={m} className="py-1 px-2 text-right font-bold" style={{ color: counts[m] ? (MOD_COLOR[m] ?? '#6b7280') : '#d1d5db' }}>{counts[m] ?? 0}</td>
-                      ))}
-                      <td className="py-1 pl-2 text-right font-bold text-gray-800">{total}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t-2 border-gray-200 bg-white">
-                    <td className="py-1 pr-3 font-bold text-gray-900">Total</td>
-                    {data.modalidades.map(m => (
-                      <td key={m} className="py-1 px-2 text-right font-bold" style={{ color: MOD_COLOR[m] ?? '#6b7280' }}>{data.programas.reduce((a, r) => a + (r.counts[m] ?? 0), 0)}</td>
-                    ))}
-                    <td className="py-1 pl-2 text-right font-bold text-gray-900">{data.programas.reduce((a, r) => a + r.total, 0)}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          );
+          const data = s.metodologia;
+          const maxTotal = Math.max(...data.map(d => d.total), 1);
+          const W = 340; const H = 200;
+          const PAD = { t: 20, r: 16, b: 44, l: 44 };
+          const gW = W - PAD.l - PAD.r; const gH = H - PAD.t - PAD.b;
+          const n = data.length;
+          const barW = Math.min(48, (gW / Math.max(n, 1)) * 0.6);
+          const gap   = gW / Math.max(n, 1);
+          const barX  = (i: number) => PAD.l + gap * i + (gap - barW) / 2;
+          const yScale = (v: number) => (v / maxTotal) * gH;
+          const yTicks = [0, 0.25, 0.5, 0.75, 1].map(r => ({ v: Math.round(r * maxTotal), y: PAD.t + gH - r * gH }));
+          const SEGS = [
+            { key: 'pendiente' as const, color: '#94a3b8', label: 'Pendiente por aprobar' },
+            { key: 'producido' as const, color: '#7c3aed', label: 'Producido' },
+            { key: 'cargado'   as const, color: '#0891b2', label: 'Cargado' },
+          ];
           return (
             <Card title="Metodología">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-[10px] font-bold text-teal-600 uppercase tracking-wider mb-2">Cargados</p>
-                  <MetTable data={s.metodologia.cargados} />
-                </div>
-                <div className="border-t border-gray-100 pt-4">
-                  <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-2">Pendientes</p>
-                  <MetTable data={s.metodologia.pendientes} />
-                </div>
+              <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+                {yTicks.map(t => (
+                  <g key={t.v}>
+                    <line x1={PAD.l} x2={W - PAD.r} y1={t.y} y2={t.y} stroke="#f3f4f6" strokeWidth="1" />
+                    <text x={PAD.l - 5} y={t.y + 3.5} textAnchor="end" fontSize="8" fill="#9ca3af">{t.v}</text>
+                  </g>
+                ))}
+                {data.map((d, i) => {
+                  const x = barX(i);
+                  let yTop = PAD.t + gH;
+                  return (
+                    <g key={d.mod}>
+                      {SEGS.map(seg => {
+                        const h = yScale(d[seg.key]);
+                        yTop -= h;
+                        return h > 0 ? (
+                          <g key={seg.key}>
+                            <rect x={x} y={yTop} width={barW} height={h} fill={seg.color} rx="2" />
+                            {h > 14 && (
+                              <text x={x + barW / 2} y={yTop + h / 2 + 3.5} textAnchor="middle" fontSize="8.5" fontWeight="700" fill="white">{d[seg.key]}</text>
+                            )}
+                          </g>
+                        ) : null;
+                      })}
+                      <text x={x + barW / 2} y={H - 6} textAnchor="middle" fontSize="8.5" fill="#374151" fontWeight="600">{d.mod}</text>
+                    </g>
+                  );
+                })}
+              </svg>
+              <div className="flex gap-4 mt-1 flex-wrap justify-center">
+                {SEGS.map(s => (
+                  <div key={s.key} className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: s.color }} />
+                    <span className="text-[10px] text-gray-500">{s.label}</span>
+                  </div>
+                ))}
               </div>
             </Card>
           );
