@@ -110,6 +110,7 @@ export default function AdminPage() {
   const [filterEstado, setFilterEstado] = useState('');
   const [filterModalidad, setFilterModalidad] = useState('');
   const [filterSemestre, setFilterSemestre] = useState('');
+  const [filterGestor, setFilterGestor] = useState('');
 
   // Users management
   const [users, setUsers] = useState<UserInfo[]>([]);
@@ -160,8 +161,11 @@ export default function AdminPage() {
   }
 
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const gestor = (c: CourseRow) => (c['Gestor responsable '] || c['Gestor responsable'] || '—').toString().trim();
+  const diResp = (c: CourseRow) => String(c['DI responsable'] || '').trim();
   const modalidades = [...new Set(courses.map(c => String(c._modalidad ?? '')).filter(Boolean))].sort();
   const semestres = [...new Set(courses.map(c => String(c.Semestre ?? '')).filter(s => !!s && s !== 'null'))].sort((a, b) => (+a || 0) - (+b || 0));
+  const gestoresOpts = [...new Set(courses.map(c => gestor(c)).filter(g => g !== '—'))].sort();
   const filtered = sortPriorityDate(courses.filter(c => {
     const q = norm(search);
     const matchSearch = !search || norm(String(c.Asignatura || '')).includes(q) || norm(String(c._programa || '')).includes(q);
@@ -169,10 +173,9 @@ export default function AdminPage() {
       (!filterNivel || c._nivel === filterNivel) &&
       (!filterEstado || c.Estado === filterEstado) &&
       (!filterModalidad || String(c._modalidad ?? '').trim() === filterModalidad) &&
-      (!filterSemestre || String(c.Semestre ?? '').trim() === filterSemestre);
+      (!filterSemestre || String(c.Semestre ?? '').trim() === filterSemestre) &&
+      (!filterGestor || gestor(c) === filterGestor);
   }));
-
-  const gestor = (c: CourseRow) => (c['Gestor responsable '] || c['Gestor responsable'] || '—').toString().trim();
 
   function fmtDate(val: unknown): string {
     if (!val) return '—';
@@ -309,6 +312,34 @@ export default function AdminPage() {
               ))}
             </div>
 
+            {/* Coordinator assignment stats */}
+            <div className="flex flex-wrap gap-3 mb-4">
+              <div className="bg-white rounded-xl border border-emerald-200 px-4 py-3 flex items-center gap-3 flex-1 min-w-[220px]">
+                <div className="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
+                  <span className="text-emerald-700 text-xs font-bold">GC</span>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500 font-medium">Coord. Gestores · María Escobar</p>
+                  <p className="text-xl font-bold text-emerald-700 leading-tight">
+                    {filtered.filter(c => gestor(c) !== '—').length}
+                    <span className="text-xs font-normal text-gray-400 ml-1.5">cursos con gestor asignado</span>
+                  </p>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl border border-violet-200 px-4 py-3 flex items-center gap-3 flex-1 min-w-[220px]">
+                <div className="w-9 h-9 bg-violet-100 rounded-lg flex items-center justify-center shrink-0">
+                  <span className="text-violet-700 text-xs font-bold">DI</span>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500 font-medium">Coord. DI · Karina Ramirez</p>
+                  <p className="text-xl font-bold text-violet-700 leading-tight">
+                    {filtered.filter(c => diResp(c) !== '' && diResp(c) !== '—').length}
+                    <span className="text-xs font-normal text-gray-400 ml-1.5">cursos con DI asignado</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4 flex flex-wrap gap-3">
               <div className="relative flex-1 min-w-[200px]">
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -321,6 +352,10 @@ export default function AdminPage() {
               <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Todos los estados</option>
                 {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
+              </select>
+              <select value={filterGestor} onChange={e => setFilterGestor(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Todos los gestores</option>
+                {gestoresOpts.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
               <select value={filterModalidad} onChange={e => setFilterModalidad(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Todas las modalidades</option>
