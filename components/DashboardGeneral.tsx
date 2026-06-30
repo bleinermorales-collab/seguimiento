@@ -287,7 +287,9 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       const enProceso = nc.filter(c => String(c.Estado ?? '').trim() === 'En proceso').length;
       const producido = nc.filter(c => String(c.Estado ?? '').trim() === 'Producido').length;
       const cargado   = nc.filter(c => String(c.Estado ?? '').trim() === 'Cargado').length;
-      return { nivel: n, total, aprobado, enRevision, correccion, noIniciado, enProceso, producido, cargado };
+      const revision  = enRevision + correccion;
+      const noCategorizado = Math.max(0, total - noIniciado - enProceso - revision - aprobado - producido - cargado);
+      return { nivel: n, total, noCategorizado, noIniciado, enProceso, revision, aprobado, producido, cargado, enRevision, correccion };
     });
 
     // Prioritarios
@@ -503,11 +505,11 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
         {/* Leyenda */}
         <div className="flex flex-wrap gap-4 mb-5 text-[11px]">
           {[
-            { color: '#16a34a', label: 'Aprobado' },
-            { color: '#2563eb', label: 'En revisión' },
-            { color: '#ea580c', label: 'Corrección' },
+            { color: '#9ca3af', label: 'No categorizado' },
             { color: '#374151', label: 'No iniciado' },
             { color: '#f59e0b', label: 'En proceso' },
+            { color: '#3b82f6', label: 'Revisión' },
+            { color: '#16a34a', label: 'Aprobado' },
             { color: '#7c3aed', label: 'Producido' },
             { color: '#0891b2', label: 'Cargado' },
           ].map(l => (
@@ -525,13 +527,13 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             <div className="space-y-2.5 mb-6">
               {s.nivelStats.filter(n => n.total > 0).map(n => {
                 const segs = [
-                  { val: n.aprobado,   color: '#16a34a' },
-                  { val: n.enRevision, color: '#2563eb' },
-                  { val: n.correccion, color: '#ea580c' },
-                  { val: n.noIniciado, color: '#374151' },
-                  { val: n.enProceso,  color: '#f59e0b' },
-                  { val: n.producido,  color: '#7c3aed' },
-                  { val: n.cargado,    color: '#0891b2' },
+                  { val: n.noCategorizado, color: '#9ca3af' },
+                  { val: n.noIniciado,     color: '#374151' },
+                  { val: n.enProceso,      color: '#f59e0b' },
+                  { val: n.revision,       color: '#3b82f6' },
+                  { val: n.aprobado,       color: '#16a34a' },
+                  { val: n.producido,      color: '#7c3aed' },
+                  { val: n.cargado,        color: '#0891b2' },
                 ];
                 return (
                   <div key={n.nivel} className="flex items-center gap-3">
@@ -560,11 +562,11 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
               <tr className="border-b border-gray-200">
                 <th className="text-left text-gray-500 font-semibold pb-2 pr-4">Nivel</th>
                 <th className="text-right text-gray-700 font-semibold pb-2 px-3">Total</th>
-                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#16a34a' }}>Aprobado</th>
-                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#2563eb' }}>En revisión</th>
-                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#ea580c' }}>Corrección</th>
+                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#9ca3af' }}>No categ.</th>
                 <th className="text-right text-gray-700 font-semibold pb-2 px-3">No iniciado</th>
                 <th className="text-right font-semibold pb-2 px-3" style={{ color: '#f59e0b' }}>En proceso</th>
+                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#3b82f6' }}>Revisión</th>
+                <th className="text-right font-semibold pb-2 px-3" style={{ color: '#16a34a' }}>Aprobado</th>
                 <th className="text-right font-semibold pb-2 px-3" style={{ color: '#7c3aed' }}>Producido</th>
                 <th className="text-right font-semibold pb-2 pl-3" style={{ color: '#0891b2' }}>Cargado</th>
               </tr>
@@ -574,11 +576,11 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
                 <tr key={n.nivel} className="hover:bg-gray-50/60">
                   <td className="py-2 pr-4 text-gray-700 font-medium">{n.nivel}</td>
                   <td className="py-2 px-3 text-right font-bold text-gray-900">{n.total}</td>
-                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#16a34a' }}>{n.aprobado}</td>
-                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#2563eb' }}>{n.enRevision}</td>
-                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#ea580c' }}>{n.correccion}</td>
+                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#9ca3af' }}>{n.noCategorizado}</td>
                   <td className="py-2 px-3 text-right font-bold text-gray-700">{n.noIniciado}</td>
                   <td className="py-2 px-3 text-right font-bold" style={{ color: '#f59e0b' }}>{n.enProceso}</td>
+                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#3b82f6' }}>{n.revision}</td>
+                  <td className="py-2 px-3 text-right font-bold" style={{ color: '#16a34a' }}>{n.aprobado}</td>
                   <td className="py-2 px-3 text-right font-bold" style={{ color: '#7c3aed' }}>{n.producido}</td>
                   <td className="py-2 pl-3 text-right font-bold" style={{ color: '#0891b2' }}>{n.cargado}</td>
                 </tr>
@@ -588,11 +590,11 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
               <tr className="border-t-2 border-gray-200">
                 <td className="py-2 pr-4 font-bold text-gray-900">Total</td>
                 <td className="py-2 px-3 text-right font-bold text-gray-900">{s.total}</td>
-                <td className="py-2 px-3 text-right font-bold" style={{ color: '#16a34a' }}>{s.nivelStats.reduce((a,n) => a+n.aprobado, 0)}</td>
-                <td className="py-2 px-3 text-right font-bold" style={{ color: '#2563eb' }}>{s.nivelStats.reduce((a,n) => a+n.enRevision, 0)}</td>
-                <td className="py-2 px-3 text-right font-bold" style={{ color: '#ea580c' }}>{s.nivelStats.reduce((a,n) => a+n.correccion, 0)}</td>
+                <td className="py-2 px-3 text-right font-bold" style={{ color: '#9ca3af' }}>{s.nivelStats.reduce((a,n) => a+n.noCategorizado, 0)}</td>
                 <td className="py-2 px-3 text-right font-bold text-gray-700">{s.nivelStats.reduce((a,n) => a+n.noIniciado, 0)}</td>
                 <td className="py-2 px-3 text-right font-bold" style={{ color: '#f59e0b' }}>{s.nivelStats.reduce((a,n) => a+n.enProceso, 0)}</td>
+                <td className="py-2 px-3 text-right font-bold" style={{ color: '#3b82f6' }}>{s.nivelStats.reduce((a,n) => a+n.revision, 0)}</td>
+                <td className="py-2 px-3 text-right font-bold" style={{ color: '#16a34a' }}>{s.nivelStats.reduce((a,n) => a+n.aprobado, 0)}</td>
                 <td className="py-2 px-3 text-right font-bold" style={{ color: '#7c3aed' }}>{s.nivelStats.reduce((a,n) => a+n.producido, 0)}</td>
                 <td className="py-2 pl-3 text-right font-bold" style={{ color: '#0891b2' }}>{s.nivelStats.reduce((a,n) => a+n.cargado, 0)}</td>
               </tr>
