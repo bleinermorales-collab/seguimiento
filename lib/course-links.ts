@@ -32,12 +32,14 @@ function courseKey(nivel: string, programa: string, asignatura: string, nombreEl
   return nombreElectiva?.trim() ? `${base}::${nombreElectiva.trim()}` : base;
 }
 
-// Resolve a link entry: try the full key (with nombreElectiva) first,
-// then fall back to the base key (backward compat with old sidecar entries).
+// Resolve a link entry.
+// - If the course has a nombreElectiva: only use the specific key, NO fallback.
+//   This prevents the old generic "Electiva II" sidecar entry from being
+//   inherited by all electivas in the same program (false positives).
+// - If no nombreElectiva: use the base key directly.
 function resolveLinks(data: LinksMap, nivel: string, programa: string, asignatura: string, nombreElectiva?: string) {
-  const full = courseKey(nivel, programa, asignatura, nombreElectiva);
-  const base = courseKey(nivel, programa, asignatura);
-  return data[full] ?? (full !== base ? data[base] : undefined);
+  const key = courseKey(nivel, programa, asignatura, nombreElectiva);
+  return data[key];
 }
 
 export function setLinkDI(nivel: string, programa: string, asignatura: string, link: string, nombreElectiva?: string): void {

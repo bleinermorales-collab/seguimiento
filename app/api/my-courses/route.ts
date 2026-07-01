@@ -6,31 +6,39 @@ import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
+// Normalize for name comparison: strip accents, lowercase, collapse whitespace.
+// This handles common GS/Excel discrepancies: "María López" vs "Maria Lopez",
+// extra spaces, different accent encodings, etc.
+function normName(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
 export async function GET(req: NextRequest) {
   void req;
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   const role = (session.user as { role?: string }).role;
-  const name = session.user.name;
+  const name = session.user.name ?? '';
+  const myName = normName(name);
 
   try {
     const all = mergeLinksDI(await readAllCourses());
 
     if (role === 'Gestor') {
       const mine = all.filter(r => {
-        const asignado    = String(r['Gestor asignado']    ?? r['Gestor Asignado']    ?? '').trim();
-        const responsable = String(r['Gestor responsable '] ?? r['Gestor responsable'] ?? '').trim();
-        return asignado === name || responsable === name;
+        const asignado    = normName(String(r['Gestor asignado']    ?? r['Gestor Asignado']    ?? ''));
+        const responsable = normName(String(r['Gestor responsable'] ?? r['Gestor responsable '] ?? r['Gestor Responsable'] ?? ''));
+        return asignado === myName || responsable === myName;
       });
       return NextResponse.json({ data: mine });
     }
 
     if (role === 'Diseñador Instruccional') {
       const mine = all.filter(r => {
-        const asignado    = String(r['DI asignado']    ?? r['DI Asignado']    ?? '').trim();
-        const responsable = String(r['DI responsable'] ?? r['DI Responsable'] ?? r['DI responsable '] ?? '').trim();
-        return asignado === name || responsable === name;
+        const asignado    = normName(String(r['DI asignado']    ?? r['DI Asignado']    ?? ''));
+        const responsable = normName(String(r['DI responsable'] ?? r['DI Responsable'] ?? r['DI responsable '] ?? ''));
+        return asignado === myName || responsable === myName;
       });
       return NextResponse.json({ data: mine });
     }
