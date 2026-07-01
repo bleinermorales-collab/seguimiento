@@ -5,14 +5,21 @@ const LINKS_PATH = path.join(process.cwd(), 'data', 'course-links.json');
 
 type LinksMap = Record<string, { linkDI?: string; linkGC?: string; linkGestor?: string; di?: string }>;
 
+// Normalize a key segment: strip accents, lowercase, trim.
+// Used for both storing and looking up keys so mismatches due to
+// accent differences or capitalization between the frontend and Excel don't break lookups.
+function normSeg(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
 function readLinks(): LinksMap {
   try {
     if (fs.existsSync(LINKS_PATH)) {
       const raw = JSON.parse(fs.readFileSync(LINKS_PATH, 'utf-8')) as LinksMap;
-      // Normalize keys: trim each segment separated by "::"
+      // Normalize keys: strip accents, lowercase, trim each segment
       const normalized: LinksMap = {};
       for (const [k, v] of Object.entries(raw)) {
-        const clean = k.split('::').map(p => p.trim()).join('::');
+        const clean = k.split('::').map(p => normSeg(p)).join('::');
         normalized[clean] = v;
       }
       return normalized;
@@ -41,8 +48,8 @@ function isRealElectivaName(ne: string | undefined): boolean {
 // (not "No aplica", "N/A", etc.) so that placeholder values in the sheet
 // don't break the sidecar lookup for non-electiva courses.
 function courseKey(nivel: string, programa: string, asignatura: string, nombreElectiva?: string): string {
-  const base = `${nivel.trim()}::${programa.trim()}::${asignatura.trim()}`;
-  return isRealElectivaName(nombreElectiva) ? `${base}::${nombreElectiva!.trim()}` : base;
+  const base = `${normSeg(nivel)}::${normSeg(programa)}::${normSeg(asignatura)}`;
+  return isRealElectivaName(nombreElectiva) ? `${base}::${normSeg(nombreElectiva!)}` : base;
 }
 
 // Resolve a link entry.
@@ -94,7 +101,9 @@ export function mergeLinks(courses: Record<string, unknown>[]): Record<string, u
     const links = resolveLinks(data, nivel, programa, asignatura, nombreElectiva);
     const patched = { ...c };
     if (links?.linkDI) patched['Link DI'] = links.linkDI;
-    if (links?.linkGC) patched['Link'] = links.linkGC;
+    // linkGestor is the legacy field (saved before linkGC was added); use it as fallback
+    const effectiveLink = links?.linkGC || links?.linkGestor;
+    if (effectiveLink) patched['Link'] = effectiveLink;
     if (links?.linkGestor) patched['Link Gestor'] = links.linkGestor;
     // Inject DI name from sidecar if the sheet column is empty
     if (links?.di) {

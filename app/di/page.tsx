@@ -76,17 +76,18 @@ export default function DIPage() {
   const [saving, setSaving] = useState(false);
   const [messages, setMessages] = useState<{ id: string; type: 'success' | 'error'; text: string }[]>([]);
 
-  const load = async () => {
+  const load = async (showLoading = false) => {
+    if (showLoading) setLoading(true);
     const res = await fetch(api('/api/my-courses')).then(r => r.json());
     setCursos(res.data || []);
     setLoading(false);
   };
 
   useEffect(() => {
-    load();
+    load(true);
     const onFocus = () => load();
     window.addEventListener('focus', onFocus);
-    const interval = setInterval(load, 60_000);
+    const interval = setInterval(() => load(), 60_000);
     return () => {
       window.removeEventListener('focus', onFocus);
       clearInterval(interval);
