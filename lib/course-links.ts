@@ -25,11 +25,24 @@ function writeLinks(data: LinksMap): void {
   fs.writeFileSync(LINKS_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// Include nombreElectiva in the key when present so electivas with the same
-// asignatura name in the same programa are stored as distinct entries.
+// Values that the sheet uses as "no electiva name" placeholders — treat as empty.
+const MEANINGLESS_NE = new Set(['no aplica', 'n/a', 'na', '-', '--', 'no', 'ninguno', 'ninguna']);
+
+function normNE(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
+function isRealElectivaName(ne: string | undefined): boolean {
+  const v = (ne ?? '').trim();
+  return v !== '' && !MEANINGLESS_NE.has(normNE(v));
+}
+
+// Include nombreElectiva in the key only when it is a real, meaningful name
+// (not "No aplica", "N/A", etc.) so that placeholder values in the sheet
+// don't break the sidecar lookup for non-electiva courses.
 function courseKey(nivel: string, programa: string, asignatura: string, nombreElectiva?: string): string {
   const base = `${nivel.trim()}::${programa.trim()}::${asignatura.trim()}`;
-  return nombreElectiva?.trim() ? `${base}::${nombreElectiva.trim()}` : base;
+  return isRealElectivaName(nombreElectiva) ? `${base}::${nombreElectiva!.trim()}` : base;
 }
 
 // Resolve a link entry.
@@ -76,7 +89,8 @@ export function mergeLinks(courses: Record<string, unknown>[]): Record<string, u
     const nivel = String(c._nivel ?? '').trim();
     const programa = String(c._programa ?? '').trim();
     const asignatura = String(c['Asignatura'] ?? '').trim();
-    const nombreElectiva = String(c['Nombre electiva'] ?? '').trim() || undefined;
+    const rawNE = String(c['Nombre electiva'] ?? '').trim();
+    const nombreElectiva = isRealElectivaName(rawNE) ? rawNE : undefined;
     const links = resolveLinks(data, nivel, programa, asignatura, nombreElectiva);
     const patched = { ...c };
     if (links?.linkDI) patched['Link DI'] = links.linkDI;

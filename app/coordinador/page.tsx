@@ -160,9 +160,12 @@ export default function CoordinadorPage() {
   const gestorActual = (c: Curso) =>
     String(c['Gestor asignado'] ?? c['Gestor responsable '] ?? c['Gestor responsable'] ?? '').trim();
   const linkActual = (c: Curso) => String(c['Link'] ?? '').trim();
+  const MEANINGLESS_NE_C = new Set(['no aplica', 'n/a', 'na', '-', '--', 'no', 'ninguno', 'ninguna']);
   const nombreElectiva = (c: Curso) => {
     const ne = String(c['Nombre electiva'] ?? '').trim();
-    return ne && ne.toLowerCase() !== 'no aplica' ? ne : '';
+    if (!ne) return '';
+    const norm = ne.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+    return MEANINGLESS_NE_C.has(norm) ? '' : ne;
   };
   const key = (c: Curso) => {
     const ne = nombreElectiva(c);

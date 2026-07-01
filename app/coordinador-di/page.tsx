@@ -39,8 +39,12 @@ const ESTADO_BADGE: Record<string, string> = {
   'Aprobado':           'bg-green-100 text-green-700',
 };
 
+const MEANINGLESS_NE = new Set(['no aplica', 'n/a', 'na', '-', '--', 'no', 'ninguno', 'ninguna']);
 function nombreElectiva(c: Curso): string {
-  return String(c['Nombre electiva'] ?? '').trim();
+  const v = String(c['Nombre electiva'] ?? '').trim();
+  if (!v) return '';
+  const norm = v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  return MEANINGLESS_NE.has(norm) ? '' : v;
 }
 function diActual(c: Curso): string {
   return String(c['DI asignado'] ?? c['DI responsable'] ?? c['DI Responsable'] ?? c['DI responsable '] ?? '').trim();

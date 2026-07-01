@@ -7,6 +7,14 @@ import { api } from '@/lib/api';
 import ObservacionesEditor from '@/components/ObservacionesEditor';
 import type { EstadoOption } from '@/types';
 
+const _NE_MEANINGLESS = new Set(['no aplica', 'n/a', 'na', '-', '--', 'no', 'ninguno', 'ninguna']);
+function sanitizeNE(v: string): string | undefined {
+  const t = v.trim();
+  if (!t) return undefined;
+  const n = t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  return _NE_MEANINGLESS.has(n) ? undefined : t;
+}
+
 interface Curso {
   _nivel: string;
   _programa: string;
@@ -166,7 +174,7 @@ export default function GestorPage() {
           curso: curso.Asignatura,
           estadoId: 'inicio_contenido',
           observaciones: '',
-          nombreElectiva: String(curso['Nombre electiva'] ?? '').trim() || undefined,
+          nombreElectiva: sanitizeNE(String(curso['Nombre electiva'] ?? '')),
         }),
       });
       const data = await res.json();
