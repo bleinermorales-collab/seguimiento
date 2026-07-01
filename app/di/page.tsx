@@ -78,8 +78,12 @@ export default function DIPage() {
 
   const load = async (showLoading = false) => {
     if (showLoading) setLoading(true);
-    const res = await fetch(api('/api/my-courses')).then(r => r.json());
-    setCursos(res.data || []);
+    try {
+      const res = await fetch(api('/api/my-courses')).then(r => r.json());
+      // Only update if the API returned valid data. If it returned an error
+      // (no 'data' field), keep the existing list to avoid a blank screen.
+      if (Array.isArray(res.data)) setCursos(res.data);
+    } catch { /* ignore network errors on background refresh */ }
     setLoading(false);
   };
 

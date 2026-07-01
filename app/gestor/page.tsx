@@ -141,19 +141,20 @@ export default function GestorPage() {
   const [saving, setSaving] = useState(false);
   const [messages, setMessages] = useState<{ id: string; type: 'success' | 'error'; text: string }[]>([]);
 
-  const load = async () => {
-    const res = await fetch(api('/api/my-courses')).then(r => r.json());
-    setCursos(res.data || []);
+  const load = async (showLoading = false) => {
+    if (showLoading) setLoading(true);
+    try {
+      const res = await fetch(api('/api/my-courses')).then(r => r.json());
+      if (Array.isArray(res.data)) setCursos(res.data);
+    } catch { /* ignore network errors on background refresh */ }
     setLoading(false);
   };
 
   useEffect(() => {
-    load();
-    // Refrescar al volver a la pestaña
+    load(true);
     const onFocus = () => load();
     window.addEventListener('focus', onFocus);
-    // Refrescar cada 60 segundos
-    const interval = setInterval(load, 60_000);
+    const interval = setInterval(() => load(), 60_000);
     return () => {
       window.removeEventListener('focus', onFocus);
       clearInterval(interval);
