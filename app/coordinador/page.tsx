@@ -113,15 +113,14 @@ function isDevuelto(c: Curso): boolean {
   return estado === 'Corrección' || (estadoCurso === 'Corrección' && revalidacion === 'En revalidación');
 }
 
-const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-function fechaLanzamiento(c: Curso): Date | null {
-  return parseDate(c['Fecha programada de lanzamiento'] ?? '');
+// The sheet stores launch month as a plain Spanish text ("agosto", "septiembre", etc.)
+// not as a full date — so we read the raw string, not parseDate().
+const ORDEN_MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function mesLanzamiento(c: Curso): string {
+  return String(c['Fecha programada de lanzamiento'] ?? '').trim().toLowerCase();
 }
-function mesKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
-function mesLabel(d: Date): string {
-  return `${MESES[d.getMonth()]} ${d.getFullYear()}`;
+function mesLanzamientoDisplay(v: string): string {
+  return v ? v.charAt(0).toUpperCase() + v.slice(1) : '—';
 }
 
 const ESTADO_BADGE: Record<string, string> = {
@@ -146,6 +145,8 @@ export default function CoordinadorPage() {
   const [filterSemestre, setFilterSemestre] = useState('');
   const [filterGestor, setFilterGestor] = useState('');
   const [filterMes, setFilterMes] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 50;
   const [saving, setSaving] = useState<string | null>(null);
   const [messages, setMessages] = useState<{ id: string; type: 'success' | 'error'; text: string }[]>([]);
   const [modal, setModal] = useState<{ curso: Curso; gestor: string; link: string; obs: string } | null>(null);
@@ -192,18 +193,18 @@ export default function CoordinadorPage() {
     if (filterModalidad && String(c._modalidad ?? '').trim() !== filterModalidad) return false;
     if (filterSemestre && String(c.Semestre ?? '').trim() !== filterSemestre) return false;
     if (filterGestor && gestorActual(c) !== filterGestor) return false;
-    if (filterMes) {
-      const fl = fechaLanzamiento(c);
-      if (!fl || mesKey(fl) !== filterMes) return false;
-    }
+    if (filterMes && mesLanzamiento(c) !== filterMes) return false;
     const q = norm(search);
     if (q && !norm(c.Asignatura ?? '').includes(q) && !norm(c._programa ?? '').includes(q)) return false;
     return true;
   });
   const modalidades = [...new Set(cursos.map(c => String(c._modalidad ?? '')).filter(Boolean))].sort();
-  const mesesDisponibles = [...new Set(
-    cursos.map(c => fechaLanzamiento(c)).filter((d): d is Date => d !== null).map(d => mesKey(d))
-  )].sort();
+  const mesesDisponibles = [...new Set(cursos.map(c => mesLanzamiento(c)).filter(Boolean))]
+    .sort((a, b) => {
+      const ia = ORDEN_MESES.indexOf(a), ib = ORDEN_MESES.indexOf(b);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      return a.localeCompare(b);
+    });
   const semestres = [...new Set(cursos.map(c => String(c.Semestre ?? '')).filter(s => !!s && s !== 'null'))].sort((a, b) => (+a || 0) - (+b || 0));
 
   const sortAZ = (l: Curso[]) => [...l].sort((a, b) => String(a.Asignatura ?? '').localeCompare(String(b.Asignatura ?? ''), 'es'));
@@ -730,7 +731,7 @@ export default function CoordinadorPage() {
           />
           <select
             value={nivelFilter}
-            onChange={e => setNivelFilter(e.target.value)}
+            onChange={e => { setNivelFilter(e.target.value); setPage(1); }}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
           >
             <option value="">Todos los niveles</option>
@@ -738,7 +739,7 @@ export default function CoordinadorPage() {
           </select>
           <select
             value={filterEstado}
-            onChange={e => setFilterEstado(e.target.value)}
+            onChange={e => { setFilterEstado(e.target.value); setPage(1); }}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
           >
             <option value="">Todos los estados</option>
@@ -772,15 +773,13 @@ export default function CoordinadorPage() {
           </select>
           <select
             value={filterMes}
-            onChange={e => setFilterMes(e.target.value)}
+            onChange={e => { setFilterMes(e.target.value); setPage(1); }}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
           >
             <option value="">Todos los meses</option>
-            {mesesDisponibles.map(mk => {
-              const [y, m] = mk.split('-');
-              const d = new Date(+y, +m - 1, 1);
-              return <option key={mk} value={mk}>{mesLabel(d)}</option>;
-            })}
+            {mesesDisponibles.map(m => (
+              <option key={m} value={m}>{mesLanzamientoDisplay(m)}</option>
+            ))}
           </select>
           <span className="text-xs text-gray-400">
             {activeTab === 'todos' ? `${todosFiltered.length} cursos`
@@ -808,7 +807,7 @@ export default function CoordinadorPage() {
             {activeTab === 'todos' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[1500px]">
+                  <div className="w-full min-w-[1100px]">
                     <div className="grid grid-cols-[140px_220px_80px_1fr_38px_100px_110px_130px_105px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
@@ -821,7 +820,7 @@ export default function CoordinadorPage() {
                       <span>F. lanzamiento</span>
                     </div>
                     <div className="divide-y divide-gray-50">
-                      {todosFiltered.map((c, i) => {
+                      {todosFiltered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((c, i) => {
                         const actual = gestorActual(c);
                         const isAssigned = Boolean(actual);
                         const priority = isPriority(c);
@@ -878,9 +877,9 @@ export default function CoordinadorPage() {
                             )}
                             {/* Fecha programada de lanzamiento */}
                             {(() => {
-                              const fl = fechaLanzamiento(c);
-                              return fl
-                                ? <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200 whitespace-nowrap">{formatDate(fl)}</span>
+                              const ml = mesLanzamiento(c);
+                              return ml
+                                ? <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200 whitespace-nowrap">{mesLanzamientoDisplay(ml)}</span>
                                 : <span className="text-xs text-gray-300">—</span>;
                             })()}
                           </div>
@@ -888,6 +887,48 @@ export default function CoordinadorPage() {
                       })}
                     </div>
                   </div>
+                  {/* Paginación */}
+                  {todosFiltered.length > PAGE_SIZE && (
+                    <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-white">
+                      <span className="text-xs text-gray-400">
+                        {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, todosFiltered.length)} de {todosFiltered.length} cursos
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setPage(p => Math.max(1, p - 1))}
+                          disabled={page === 1}
+                          className="px-2.5 py-1 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                        >
+                          ‹ Anterior
+                        </button>
+                        {Array.from({ length: Math.ceil(todosFiltered.length / PAGE_SIZE) }, (_, idx) => idx + 1)
+                          .filter(n => n === 1 || n === Math.ceil(todosFiltered.length / PAGE_SIZE) || Math.abs(n - page) <= 1)
+                          .reduce<(number | '…')[]>((acc, n, idx, arr) => {
+                            if (idx > 0 && typeof arr[idx - 1] === 'number' && (n as number) - (arr[idx - 1] as number) > 1) acc.push('…');
+                            acc.push(n);
+                            return acc;
+                          }, [])
+                          .map((n, idx) =>
+                            n === '…'
+                              ? <span key={`ellipsis-${idx}`} className="px-1 text-xs text-gray-400">…</span>
+                              : <button
+                                  key={n}
+                                  onClick={() => setPage(n as number)}
+                                  className={`w-7 h-7 text-xs font-medium rounded-lg border transition ${page === n ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                                >
+                                  {n}
+                                </button>
+                          )}
+                        <button
+                          onClick={() => setPage(p => Math.min(Math.ceil(todosFiltered.length / PAGE_SIZE), p + 1))}
+                          disabled={page === Math.ceil(todosFiltered.length / PAGE_SIZE)}
+                          className="px-2.5 py-1 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                        >
+                          Siguiente ›
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1006,7 +1047,7 @@ export default function CoordinadorPage() {
             {activeTab === 'asignados' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[1500px]">
+                  <div className="w-full min-w-[1100px]">
                     <div className="grid grid-cols-[130px_210px_1fr_140px_100px_105px_50px_180px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
@@ -1043,9 +1084,9 @@ export default function CoordinadorPage() {
                             <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full truncate border border-emerald-200" title={actual}>{actual}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${ESTADO_BADGE[estado] || 'bg-gray-100 text-gray-600'}`}>{estado}</span>
                             {(() => {
-                              const fl = fechaLanzamiento(c);
-                              return fl
-                                ? <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200 whitespace-nowrap">{formatDate(fl)}</span>
+                              const ml = mesLanzamiento(c);
+                              return ml
+                                ? <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200 whitespace-nowrap">{mesLanzamientoDisplay(ml)}</span>
                                 : <span className="text-xs text-gray-300">—</span>;
                             })()}
                             <span className={`text-xs font-semibold ${diasClass(dias)}`}>{diasBadge(dias)}</span>
@@ -1079,7 +1120,7 @@ export default function CoordinadorPage() {
             {activeTab === 'aprobados' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[1500px]">
+                  <div className="w-full min-w-[1100px]">
                     <div className="grid grid-cols-[160px_260px_1fr_160px_120px_120px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
