@@ -86,7 +86,7 @@ const ALIAS_REVERSE: Map<string, string> = (() => {
   return m;
 })();
 
-function normalizeRowKeys(row: Record<string, unknown>): Record<string, unknown> {
+export function normalizeRowKeys(row: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [key, val] of Object.entries(row)) {
     const canonical = ALIAS_REVERSE.get(key) ?? ALIAS_REVERSE.get(normalizeColName(key)) ?? key;

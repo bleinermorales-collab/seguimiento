@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import * as excel from '@/lib/excel';
+import { normalizeRowKeys } from '@/lib/excel';
 
 function hasGoogleCredentials(): boolean {
   return !!(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY);
@@ -121,10 +122,14 @@ export async function readSheet(nivel: string): Promise<Record<string, unknown>[
   let lastModalidad = '';
 
   return rows.slice(1).map(row => {
-    const obj: Record<string, unknown> = {};
-    headers.forEach((h, i) => { obj[h] = row[i] ?? null; });
-    if (obj['Programa'] != null && String(obj['Programa']).trim()) lastPrograma = String(obj['Programa']).trim();
-    if (obj['Modalidad'] != null && String(obj['Modalidad']).trim()) lastModalidad = String(obj['Modalidad']).trim();
+    const raw: Record<string, unknown> = {};
+    headers.forEach((h, i) => { raw[h] = row[i] ?? null; });
+    // Normalize column names to canonical form (same as Excel path) so that
+    // "Gestor responsable ", "Gestor Responsable", etc. all become "Gestor responsable".
+    // This ensures my-courses and other routes work regardless of GS header spelling.
+    const obj = normalizeRowKeys(raw);
+    if (raw['Programa'] != null && String(raw['Programa']).trim()) lastPrograma = String(raw['Programa']).trim();
+    if (raw['Modalidad'] != null && String(raw['Modalidad']).trim()) lastModalidad = String(raw['Modalidad']).trim();
     obj._programa = lastPrograma;
     obj._modalidad = lastModalidad;
     return obj;
