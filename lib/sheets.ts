@@ -75,6 +75,11 @@ const COL_ALIASES: Record<string, string[]> = {
   'DI responsable':              ['DI responsable', 'DI Responsable', 'DI responsable '],
   'Link':                        ['Link', 'Link ', 'Enlace', 'Enlace curso', 'link'],
   'Link DI':                     ['Link DI', 'Link DI ', 'Link di', 'Enlace DI'],
+  'Fecha programada de lanzamiento': [
+    'Fecha programada de lanzamiento', 'Fecha Programada de Lanzamiento',
+    'Fecha programada de lanzamiento ', 'Fecha Programada De Lanzamiento',
+    'fecha programada de lanzamiento',
+  ],
 };
 
 function findColIdx(headers: string[], colName: string): number {

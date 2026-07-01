@@ -808,8 +808,8 @@ export default function CoordinadorPage() {
             {activeTab === 'todos' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[1200px]">
-                    <div className="grid grid-cols-[160px_260px_85px_1fr_38px_110px_115px_120px_110px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                  <div className="min-w-[1500px]">
+                    <div className="grid grid-cols-[140px_220px_80px_1fr_38px_100px_110px_130px_105px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Modalidad</span>
@@ -831,7 +831,7 @@ export default function CoordinadorPage() {
                         return (
                           <div
                             key={i}
-                            className={`grid grid-cols-[160px_260px_85px_1fr_38px_110px_115px_120px_110px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}
+                            className={`grid grid-cols-[140px_220px_80px_1fr_38px_100px_110px_130px_105px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}
                           >
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500">{c._programa}</span>
@@ -1006,8 +1006,8 @@ export default function CoordinadorPage() {
             {activeTab === 'asignados' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[1200px]">
-                    <div className="grid grid-cols-[140px_240px_1fr_140px_100px_105px_55px_180px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                  <div className="min-w-[1500px]">
+                    <div className="grid grid-cols-[130px_210px_1fr_140px_100px_105px_50px_180px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
@@ -1028,7 +1028,7 @@ export default function CoordinadorPage() {
                         const estado = String(c.Estado ?? '').trim();
                         const dias = diasDesde(getLastStateDate(c));
                         return (
-                          <div key={i} className={`grid grid-cols-[140px_240px_1fr_140px_100px_105px_55px_180px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}>
+                          <div key={i} className={`grid grid-cols-[130px_210px_1fr_140px_100px_105px_50px_180px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}>
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500 truncate">{c._programa}</span>
                             <div className="min-w-0">
@@ -1079,7 +1079,7 @@ export default function CoordinadorPage() {
             {activeTab === 'aprobados' && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <div className="min-w-[1200px]">
+                  <div className="min-w-[1500px]">
                     <div className="grid grid-cols-[160px_260px_1fr_160px_120px_120px_100px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
