@@ -206,7 +206,7 @@ export default function GestorPage() {
           estadoId: opciones[0].id,
           observaciones: modal.obs,
           link: modal.link || undefined,
-          nombreElectiva: String(modal.curso['Nombre electiva'] ?? '').trim() || undefined,
+          nombreElectiva: sanitizeNE(String(modal.curso['Nombre electiva'] ?? '')),
         }),
       });
       const data = await res.json();

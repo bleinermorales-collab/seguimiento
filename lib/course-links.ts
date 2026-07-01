@@ -72,7 +72,7 @@ export function setLinkGC(nivel: string, programa: string, asignatura: string, l
 export function setLinkGestor(nivel: string, programa: string, asignatura: string, link: string, nombreElectiva?: string): void {
   const data = readLinks();
   const k = courseKey(nivel, programa, asignatura, nombreElectiva);
-  data[k] = { ...data[k], linkGestor: link };
+  data[k] = { ...data[k], linkGestor: link, linkGC: link };
   writeLinks(data);
 }
 
