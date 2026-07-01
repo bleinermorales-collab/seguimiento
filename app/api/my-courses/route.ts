@@ -7,10 +7,21 @@ import { authOptions } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 
 // Normalize for name comparison: strip accents, lowercase, collapse whitespace.
-// This handles common GS/Excel discrepancies: "María López" vs "Maria Lopez",
-// extra spaces, different accent encodings, etc.
 function normName(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+// Match names even when the sheet has a truncated version (e.g. "Aimar Mendoza"
+// stored in the sheet vs "Aimar Mendoza Torres" in the session). Checks exact
+// match first, then word-boundary prefix in either direction.
+function nameMatches(stored: string, session: string): boolean {
+  if (!stored || !session) return false;
+  if (stored === session) return true;
+  // "aimar mendoza" matches "aimar mendoza torres" (sheet truncated)
+  if (session.startsWith(stored + ' ')) return true;
+  // "aimar mendoza torres" matches "aimar mendoza" (session truncated — unlikely but safe)
+  if (stored.startsWith(session + ' ')) return true;
+  return false;
 }
 
 export async function GET(req: NextRequest) {
@@ -29,7 +40,7 @@ export async function GET(req: NextRequest) {
       const mine = all.filter(r => {
         const asignado    = normName(String(r['Gestor asignado']    ?? r['Gestor Asignado']    ?? ''));
         const responsable = normName(String(r['Gestor responsable'] ?? r['Gestor responsable '] ?? r['Gestor Responsable'] ?? ''));
-        return asignado === myName || responsable === myName;
+        return nameMatches(asignado, myName) || nameMatches(responsable, myName);
       });
       return NextResponse.json({ data: mine });
     }
@@ -38,7 +49,7 @@ export async function GET(req: NextRequest) {
       const mine = all.filter(r => {
         const asignado    = normName(String(r['DI asignado']    ?? r['DI Asignado']    ?? ''));
         const responsable = normName(String(r['DI responsable'] ?? r['DI Responsable'] ?? r['DI responsable '] ?? ''));
-        return asignado === myName || responsable === myName;
+        return nameMatches(asignado, myName) || nameMatches(responsable, myName);
       });
       return NextResponse.json({ data: mine });
     }
