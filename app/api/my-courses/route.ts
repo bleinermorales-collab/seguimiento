@@ -11,17 +11,28 @@ function normName(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
-// Match names even when the sheet has a truncated version (e.g. "Aimar Mendoza"
-// stored in the sheet vs "Aimar Mendoza Torres" in the session). Checks exact
-// match first, then word-boundary prefix in either direction.
+// Match names even when the sheet has a truncated or abbreviated form.
+// Handles three common cases:
+//   • Exact prefix:    "Nayerlis Salas" == "Nayerlis Salas Medina"
+//   • Skipped words:   "Caroll Avendaño" == "Caroll Tatiana Avendaño Peña"
+//                      "Andres Velandia" == "Andrés Felipe Velandia Espitia"
+// Strategy: all words in the shorter name must appear as a subsequence (in order)
+// inside the longer name. Requires ≥ 2 words to avoid single-word false positives.
 function nameMatches(stored: string, session: string): boolean {
   if (!stored || !session) return false;
   if (stored === session) return true;
-  // "aimar mendoza" matches "aimar mendoza torres" (sheet truncated)
-  if (session.startsWith(stored + ' ')) return true;
-  // "aimar mendoza torres" matches "aimar mendoza" (session truncated — unlikely but safe)
-  if (stored.startsWith(session + ' ')) return true;
-  return false;
+  const shorter = stored.length <= session.length ? stored : session;
+  const longer  = stored.length <= session.length ? session : stored;
+  const shortWords = shorter.split(' ').filter(Boolean);
+  if (shortWords.length < 2) return false;
+  const longWords = longer.split(' ').filter(Boolean);
+  let li = 0;
+  for (const sw of shortWords) {
+    while (li < longWords.length && longWords[li] !== sw) li++;
+    if (li >= longWords.length) return false;
+    li++;
+  }
+  return true;
 }
 
 export async function GET(req: NextRequest) {
