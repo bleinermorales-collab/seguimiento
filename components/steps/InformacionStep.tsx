@@ -107,7 +107,8 @@ export default function InformacionStep({ form, onChange }: Props) {
     const nivel = form.nivel || '';
     fetch(`/api/data?type=${type}&nivel=${encodeURIComponent(nivel)}`)
       .then((r) => r.json())
-      .then((d) => setResponsables(d.data || []));
+      .then((d) => { if (Array.isArray(d.data)) setResponsables(d.data); })
+      .catch(() => {});
   }, [form.rol, form.nivel]);
 
   // Load programas when nivel changes
@@ -119,10 +120,8 @@ export default function InformacionStep({ form, onChange }: Props) {
     setLoadingProgramas(true);
     fetch(`/api/data?type=programas&nivel=${encodeURIComponent(form.nivel)}`)
       .then((r) => r.json())
-      .then((d) => {
-        setProgramas(d.data || []);
-        setLoadingProgramas(false);
-      });
+      .then((d) => { if (Array.isArray(d.data)) setProgramas(d.data); setLoadingProgramas(false); })
+      .catch(() => setLoadingProgramas(false));
   }, [form.nivel]);
 
   // Load cursos when programa changes
@@ -134,10 +133,8 @@ export default function InformacionStep({ form, onChange }: Props) {
     setLoadingCursos(true);
     fetch(`/api/data?type=cursos&nivel=${encodeURIComponent(form.nivel)}&programa=${encodeURIComponent(form.programa)}`)
       .then((r) => r.json())
-      .then((d) => {
-        setCursos(d.data || []);
-        setLoadingCursos(false);
-      });
+      .then((d) => { if (Array.isArray(d.data)) setCursos(d.data); setLoadingCursos(false); })
+      .catch(() => setLoadingCursos(false));
   }, [form.nivel, form.programa]);
 
   return (

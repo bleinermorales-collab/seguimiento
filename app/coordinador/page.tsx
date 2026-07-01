@@ -166,9 +166,14 @@ export default function CoordinadorPage() {
   const [bulkSaving, setBulkSaving] = useState(false);
 
   useEffect(() => {
-    fetch(api('/api/admin'))
-      .then(r => r.json())
-      .then(d => { setCursos(d.data || []); setLoading(false); });
+    (async () => {
+      setLoading(true);
+      try {
+        const d = await fetch(api('/api/admin')).then(r => r.json());
+        if (Array.isArray(d.data)) setCursos(d.data);
+      } catch { }
+      setLoading(false);
+    })();
   }, []);
 
   const gestorActual = (c: Curso) =>
@@ -331,16 +336,20 @@ export default function CoordinadorPage() {
 
   const [gestores, setGestores] = useState<string[]>([]);
   useEffect(() => {
-    fetch(api('/api/data?type=gestores')).then(r => r.json()).then(d => setGestores(d.data || []));
+    fetch(api('/api/data?type=gestores'))
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.data)) setGestores(d.data); })
+      .catch(() => {});
   }, []);
 
   const handleAddNivelChange = async (nivel: string) => {
     setAddModal(m => m ? { ...m, nivel, programa: '' } : m);
     setAddPrograms([]);
     if (!nivel) return;
-    const r = await fetch(api(`/api/data?type=programas&nivel=${encodeURIComponent(nivel)}`));
-    const d = await r.json();
-    setAddPrograms(d.data || []);
+    try {
+      const d = await fetch(api(`/api/data?type=programas&nivel=${encodeURIComponent(nivel)}`)).then(r => r.json());
+      if (Array.isArray(d.data)) setAddPrograms(d.data);
+    } catch { }
   };
 
   const setAdd = (key: string, value: string) =>

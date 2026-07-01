@@ -132,7 +132,7 @@ export default function AdminPage() {
   useEffect(() => {
     fetch(api('/api/admin'))
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then(d => { setCourses(d.data || []); setLoading(false); })
+      .then(d => { if (Array.isArray(d.data)) setCourses(d.data); setLoading(false); })
       .catch(err => { setFetchError(err.message || 'Error'); setLoading(false); });
   }, []);
 
@@ -144,7 +144,14 @@ export default function AdminPage() {
       .then(d => { setUsers(d.users || []); setLoadingUsers(false); setUsersLoaded(true); })
       .catch(() => setLoadingUsers(false));
   };
-  const reloadUsers = () => { setUsersLoaded(false); setLoadingUsers(true); fetch(api('/api/admin/users')).then(r => r.json()).then(d => { setUsers(d.users || []); setLoadingUsers(false); setUsersLoaded(true); }); };
+  const reloadUsers = () => {
+    setUsersLoaded(false);
+    setLoadingUsers(true);
+    fetch(api('/api/admin/users'))
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.users)) setUsers(d.users); setLoadingUsers(false); setUsersLoaded(true); })
+      .catch(() => setLoadingUsers(false));
+  };
 
   async function userAction(body: Record<string, unknown>, successMsg: string) {
     setSaving(String(body.username || ''));

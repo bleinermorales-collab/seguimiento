@@ -109,9 +109,14 @@ export default function CoordinadorDIPage() {
   const [devolverModal, setDevolverModal] = useState<{ curso: Curso; obs: string } | null>(null);
 
   useEffect(() => {
-    fetch(api('/api/admin'))
-      .then(r => r.json())
-      .then(d => { setCursos(d.data || []); setLoading(false); });
+    (async () => {
+      setLoading(true);
+      try {
+        const d = await fetch(api('/api/admin')).then(r => r.json());
+        if (Array.isArray(d.data)) setCursos(d.data);
+      } catch { }
+      setLoading(false);
+    })();
   }, []);
 
   const key = (c: Curso) => `${c._nivel}::${c._programa}::${c.Asignatura}`;
@@ -230,7 +235,10 @@ export default function CoordinadorDIPage() {
   const niveles = ['Pregrado', 'Especializaciones', 'Maestrías', 'Doctorado'];
   const [dis, setDis] = useState<string[]>([]);
   useEffect(() => {
-    fetch(api('/api/data?type=dis')).then(r => r.json()).then(d => setDis(d.data || []));
+    fetch(api('/api/data?type=dis'))
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.data)) setDis(d.data); })
+      .catch(() => {});
   }, []);
 
   const tabs: { id: TabId; label: string; count: number; color: string; activeColor: string }[] = [
