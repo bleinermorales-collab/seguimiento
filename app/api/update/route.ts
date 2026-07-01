@@ -11,10 +11,37 @@ function todayString(): string {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 }
 
+function normName(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+// All words of `stored` must appear in order (as a subsequence) in `full`.
+// Handles truncated names in the sheet: "Aimar Mendoza" matches "Aimar Mendoza Torres",
+// "Caroll Avendaño" matches "Caroll Tatiana Avendaño Peña", etc.
+function nameMatches(stored: string, full: string): boolean {
+  if (!stored || !full) return false;
+  if (stored === full) return true;
+  const shorter = stored.length <= full.length ? stored : full;
+  const longer  = stored.length <= full.length ? full   : stored;
+  const shortWords = shorter.split(' ').filter(Boolean);
+  if (shortWords.length < 2) return false;
+  const longWords = longer.split(' ').filter(Boolean);
+  let li = 0;
+  for (const sw of shortWords) {
+    while (li < longWords.length && longWords[li] !== sw) li++;
+    if (li >= longWords.length) return false;
+    li++;
+  }
+  return true;
+}
+
 function lookupEmail(list: { nombre: string; email: string }[], nombre: string): string | undefined {
-  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
-  const n = norm(nombre);
-  return list.find(p => norm(p.nombre) === n)?.email;
+  const n = normName(nombre);
+  // Exact match first
+  const exact = list.find(p => normName(p.nombre) === n);
+  if (exact) return exact.email;
+  // Subsequence match for truncated names (e.g. sheet has "Aimar Mendoza", config has "Aimar Mendoza Torres")
+  return list.find(p => nameMatches(n, normName(p.nombre)))?.email;
 }
 
 // Busca el email de un responsable en gestores o DIs
