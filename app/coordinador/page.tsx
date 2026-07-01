@@ -842,10 +842,10 @@ export default function CoordinadorPage() {
                                     Prioridad
                                   </span>
                                 )}
-                                <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                                <span className="text-sm font-medium text-gray-900">{c.Asignatura}</span>
                               </div>
                               {nombreElectiva(c) && (
-                                <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>
+                                <p className="text-xs text-indigo-500 mt-0.5">{nombreElectiva(c)}</p>
                               )}
                             </div>
                             <span className="text-xs text-gray-400 text-center">{c.Semestre || '—'}</span>
