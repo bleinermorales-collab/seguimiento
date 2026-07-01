@@ -30,6 +30,7 @@ interface Curso {
   'DI Responsable'?: string;
   'DI responsable '?: string;
   'Nombre electiva'?: string;
+  'Fecha programada de lanzamiento'?: string;
 }
 
 type TabId = 'todos' | 'asignar' | 'asignados' | 'aprobados' | 'devueltos';
@@ -112,6 +113,17 @@ function isDevuelto(c: Curso): boolean {
   return estado === 'Corrección' || (estadoCurso === 'Corrección' && revalidacion === 'En revalidación');
 }
 
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function fechaLanzamiento(c: Curso): Date | null {
+  return parseDate(c['Fecha programada de lanzamiento'] ?? '');
+}
+function mesKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+function mesLabel(d: Date): string {
+  return `${MESES[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 const ESTADO_BADGE: Record<string, string> = {
   'En proceso':  'bg-blue-100 text-blue-700',
   'En revisión': 'bg-orange-100 text-orange-700',
@@ -133,6 +145,7 @@ export default function CoordinadorPage() {
   const [filterModalidad, setFilterModalidad] = useState('');
   const [filterSemestre, setFilterSemestre] = useState('');
   const [filterGestor, setFilterGestor] = useState('');
+  const [filterMes, setFilterMes] = useState('');
   const [saving, setSaving] = useState<string | null>(null);
   const [messages, setMessages] = useState<{ id: string; type: 'success' | 'error'; text: string }[]>([]);
   const [modal, setModal] = useState<{ curso: Curso; gestor: string; link: string; obs: string } | null>(null);
@@ -179,11 +192,18 @@ export default function CoordinadorPage() {
     if (filterModalidad && String(c._modalidad ?? '').trim() !== filterModalidad) return false;
     if (filterSemestre && String(c.Semestre ?? '').trim() !== filterSemestre) return false;
     if (filterGestor && gestorActual(c) !== filterGestor) return false;
+    if (filterMes) {
+      const fl = fechaLanzamiento(c);
+      if (!fl || mesKey(fl) !== filterMes) return false;
+    }
     const q = norm(search);
     if (q && !norm(c.Asignatura ?? '').includes(q) && !norm(c._programa ?? '').includes(q)) return false;
     return true;
   });
   const modalidades = [...new Set(cursos.map(c => String(c._modalidad ?? '')).filter(Boolean))].sort();
+  const mesesDisponibles = [...new Set(
+    cursos.map(c => fechaLanzamiento(c)).filter((d): d is Date => d !== null).map(d => mesKey(d))
+  )].sort();
   const semestres = [...new Set(cursos.map(c => String(c.Semestre ?? '')).filter(s => !!s && s !== 'null'))].sort((a, b) => (+a || 0) - (+b || 0));
 
   const sortAZ = (l: Curso[]) => [...l].sort((a, b) => String(a.Asignatura ?? '').localeCompare(String(b.Asignatura ?? ''), 'es'));
@@ -750,6 +770,18 @@ export default function CoordinadorPage() {
             <option value="">Todos los gestores</option>
             {gestores.map((g: string) => <option key={g} value={g}>{g}</option>)}
           </select>
+          <select
+            value={filterMes}
+            onChange={e => setFilterMes(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+          >
+            <option value="">Todos los meses</option>
+            {mesesDisponibles.map(mk => {
+              const [y, m] = mk.split('-');
+              const d = new Date(+y, +m - 1, 1);
+              return <option key={mk} value={mk}>{mesLabel(d)}</option>;
+            })}
+          </select>
           <span className="text-xs text-gray-400">
             {activeTab === 'todos' ? `${todosFiltered.length} cursos`
               : activeTab === 'asignar' ? `${sinIniciar.length} sin iniciar`
@@ -777,7 +809,7 @@ export default function CoordinadorPage() {
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <div className="min-w-[1200px]">
-                    <div className="grid grid-cols-[160px_280px_90px_1fr_38px_110px_115px_140px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                    <div className="grid grid-cols-[160px_260px_85px_1fr_38px_110px_115px_120px_110px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Modalidad</span>
@@ -785,7 +817,8 @@ export default function CoordinadorPage() {
                       <span>Sem.</span>
                       <span>Fechas</span>
                       <span>Estado</span>
-                      <span>Gestor asignado</span>
+                      <span>Gestor</span>
+                      <span>F. lanzamiento</span>
                     </div>
                     <div className="divide-y divide-gray-50">
                       {todosFiltered.map((c, i) => {
@@ -798,7 +831,7 @@ export default function CoordinadorPage() {
                         return (
                           <div
                             key={i}
-                            className={`grid grid-cols-[160px_280px_90px_1fr_38px_110px_115px_140px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}
+                            className={`grid grid-cols-[160px_260px_85px_1fr_38px_110px_115px_120px_110px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}
                           >
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500">{c._programa}</span>
@@ -843,6 +876,13 @@ export default function CoordinadorPage() {
                             ) : (
                               <span className="text-xs italic text-gray-300">Sin asignar</span>
                             )}
+                            {/* Fecha programada de lanzamiento */}
+                            {(() => {
+                              const fl = fechaLanzamiento(c);
+                              return fl
+                                ? <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200 whitespace-nowrap">{formatDate(fl)}</span>
+                                : <span className="text-xs text-gray-300">—</span>;
+                            })()}
                           </div>
                         );
                       })}
@@ -967,12 +1007,13 @@ export default function CoordinadorPage() {
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <div className="min-w-[1200px]">
-                    <div className="grid grid-cols-[160px_280px_1fr_160px_110px_70px_180px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                    <div className="grid grid-cols-[140px_240px_1fr_140px_100px_105px_55px_180px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
                       <span>Gestor</span>
                       <span>Estado</span>
+                      <span>F. lanzamiento</span>
                       <span>Días</span>
                       <span>Acción</span>
                     </div>
@@ -987,7 +1028,7 @@ export default function CoordinadorPage() {
                         const estado = String(c.Estado ?? '').trim();
                         const dias = diasDesde(getLastStateDate(c));
                         return (
-                          <div key={i} className={`grid grid-cols-[160px_280px_1fr_160px_110px_70px_180px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}>
+                          <div key={i} className={`grid grid-cols-[140px_240px_1fr_140px_100px_105px_55px_180px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50 ${priority ? 'bg-red-50/30' : ''}`}>
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500 truncate">{c._programa}</span>
                             <div className="min-w-0">
@@ -1001,6 +1042,12 @@ export default function CoordinadorPage() {
                             </div>
                             <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full truncate border border-emerald-200" title={actual}>{actual}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${ESTADO_BADGE[estado] || 'bg-gray-100 text-gray-600'}`}>{estado}</span>
+                            {(() => {
+                              const fl = fechaLanzamiento(c);
+                              return fl
+                                ? <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200 whitespace-nowrap">{formatDate(fl)}</span>
+                                : <span className="text-xs text-gray-300">—</span>;
+                            })()}
                             <span className={`text-xs font-semibold ${diasClass(dias)}`}>{diasBadge(dias)}</span>
                             <div className="flex items-center gap-1.5">
                               <button
