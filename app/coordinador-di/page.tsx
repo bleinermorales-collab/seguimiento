@@ -99,6 +99,7 @@ export default function CoordinadorDIPage() {
   const [reportMsg, setReportMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [messages, setMessages] = useState<{ id: string; type: 'success' | 'error'; text: string }[]>([]);
   const [modal, setModal] = useState<{ curso: Curso; di: string; link: string; obs: string } | null>(null);
+  const [devolverModal, setDevolverModal] = useState<{ curso: Curso; obs: string } | null>(null);
 
   useEffect(() => {
     fetch(api('/api/admin'))
@@ -178,6 +179,40 @@ export default function CoordinadorDIPage() {
       const action = diActual(modal.curso) ? 'Reasignado' : 'Asignado';
       setMessages(m => [...m, { id: Date.now().toString(), type: 'success', text: `${action} "${modal.curso.Asignatura}" → ${modal.di}` }]);
       setModal(null);
+    } catch (err) {
+      setMessages(m => [...m, { id: Date.now().toString(), type: 'error', text: err instanceof Error ? err.message : 'Error' }]);
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const handleDevolver = async () => {
+    if (!devolverModal || !devolverModal.obs.trim()) return;
+    const c = devolverModal.curso;
+    const k = key(c);
+    setSaving(k);
+    try {
+      const res = await fetch(api('/api/update'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rol: 'Diseñador Instruccional',
+          responsable: diActual(c) || '',
+          nivel: c._nivel,
+          programa: c._programa,
+          curso: c.Asignatura,
+          estadoId: 'devuelto',
+          observaciones: devolverModal.obs.trim(),
+          nombreElectiva: String(c['Nombre electiva'] ?? '').trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setCursos(prev => prev.map(cur =>
+        key(cur) === k ? { ...cur, 'Estado': 'Corrección', 'Estado curso': 'Corrección' } : cur
+      ));
+      setMessages(m => [...m, { id: Date.now().toString(), type: 'success', text: `Devuelto para corrección: "${c.Asignatura}"` }]);
+      setDevolverModal(null);
     } catch (err) {
       setMessages(m => [...m, { id: Date.now().toString(), type: 'error', text: err instanceof Error ? err.message : 'Error' }]);
     } finally {
@@ -423,12 +458,20 @@ export default function CoordinadorDIPage() {
                             </div>
                             <span className="text-xs text-gray-500 truncate">{gestorActual(c) || '—'}</span>
                             <span className={`text-xs ${diasClass(dPA)}`}>{diasBadge(dPA)}</span>
-                            <button
-                              onClick={() => setModal({ curso: c, di: diActual(c), link: linkDI(c), obs: '' })}
-                              className="px-3 py-1.5 text-xs font-semibold bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition"
-                            >
-                              Asignar
-                            </button>
+                            <div className="flex flex-col gap-1">
+                              <button
+                                onClick={() => setModal({ curso: c, di: diActual(c), link: linkDI(c), obs: '' })}
+                                className="px-3 py-1.5 text-xs font-semibold bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition"
+                              >
+                                Asignar
+                              </button>
+                              <button
+                                onClick={() => setDevolverModal({ curso: c, obs: '' })}
+                                className="px-3 py-1.5 text-xs font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                              >
+                                Devolver
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
@@ -443,7 +486,7 @@ export default function CoordinadorDIPage() {
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <div className="min-w-[750px]">
-                    <div className="grid grid-cols-[150px_250px_1fr_130px_100px_150px_110px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
+                    <div className="grid grid-cols-[150px_250px_1fr_130px_100px_150px_130px] text-xs font-semibold text-gray-500 uppercase px-5 py-3 border-b border-gray-100 bg-gray-50 gap-3">
                       <span>Nivel</span>
                       <span>Programa</span>
                       <span>Asignatura</span>
@@ -460,7 +503,7 @@ export default function CoordinadorDIPage() {
                       ) : asignados.map((c, i) => {
                         const fechaAsig = parseDate(c['Fecha de asignación']);
                         return (
-                          <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_100px_150px_110px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
+                          <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_100px_150px_130px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                             <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
                             <div className="min-w-0">
                               <p className="text-xs text-gray-500 truncate">{c._programa}</p>
@@ -480,12 +523,20 @@ export default function CoordinadorDIPage() {
                             <span className="text-xs font-medium text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full truncate border border-violet-200" title={diActual(c)}>
                               {diActual(c)}
                             </span>
-                            <button
-                              onClick={() => setModal({ curso: c, di: diActual(c), link: linkDI(c), obs: '' })}
-                              className="px-3 py-1.5 text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition"
-                            >
-                              Reasignar
-                            </button>
+                            <div className="flex flex-col gap-1">
+                              <button
+                                onClick={() => setModal({ curso: c, di: diActual(c), link: linkDI(c), obs: '' })}
+                                className="px-3 py-1.5 text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition"
+                              >
+                                Reasignar
+                              </button>
+                              <button
+                                onClick={() => setDevolverModal({ curso: c, obs: '' })}
+                                className="px-3 py-1.5 text-xs font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                              >
+                                Devolver
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
@@ -575,6 +626,38 @@ export default function CoordinadorDIPage() {
           </>
         )}
       </main>
+
+      {/* Modal devolver para corrección */}
+      {devolverModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={e => { if (e.target === e.currentTarget) setDevolverModal(null); }}>
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full">
+            <h3 className="font-bold text-gray-900 text-base mb-1">Devolver para corrección</h3>
+            <p className="text-sm font-semibold text-gray-800 mb-0.5 truncate">{devolverModal.curso.Asignatura}</p>
+            <p className="text-xs text-gray-400 mb-5">{devolverModal.curso._nivel} · {devolverModal.curso._programa}</p>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Observaciones / Correcciones *</label>
+              <ObservacionesEditor
+                value={devolverModal.obs}
+                onChange={val => setDevolverModal(m => m ? { ...m, obs: val } : m)}
+                placeholder="Describe las correcciones requeridas..."
+                ringColor="focus:ring-red-500"
+              />
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setDevolverModal(null)} className="flex-1 py-2.5 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+                Cancelar
+              </button>
+              <button
+                onClick={handleDevolver}
+                disabled={!devolverModal.obs.trim() || saving === key(devolverModal.curso)}
+                className="flex-1 py-2.5 text-sm font-semibold bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {saving === key(devolverModal.curso) ? 'Guardando...' : 'Devolver'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal asignación DI */}
       {modal && (
