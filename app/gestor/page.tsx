@@ -145,8 +145,13 @@ export default function GestorPage() {
     if (showLoading) setLoading(true);
     try {
       const res = await fetch(api('/api/my-courses')).then(r => r.json());
-      if (Array.isArray(res.data)) setCursos(res.data);
-    } catch { /* ignore network errors on background refresh */ }
+      if (Array.isArray(res.data)) {
+        // On background refresh: keep existing data if API returned empty
+        // (Google Sheets can fail silently and return [] transiently).
+        // On initial load (showLoading=true): always update, even if empty.
+        if (showLoading || res.data.length > 0) setCursos(res.data);
+      }
+    } catch { }
     setLoading(false);
   };
 
