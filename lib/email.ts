@@ -157,6 +157,7 @@ export function buildEmailHtml(params: {
   nivel: string;
   programa: string;
   curso: string;
+  nombreElectiva?: string;
   fecha: string;
   mensaje?: string;
   observaciones?: string;
@@ -211,7 +212,10 @@ export function buildEmailHtml(params: {
         </tr>
         <tr>
           <td style="padding:10px 0;font-size:13px;color:#6b7280;font-weight:500;vertical-align:top;padding-top:12px">Curso / Asignatura</td>
-          <td style="padding:10px 0;font-size:14px;color:#111827;font-weight:700;text-align:right;padding-top:12px">${params.curso}</td>
+          <td style="padding:10px 0;font-size:14px;color:#111827;font-weight:700;text-align:right;padding-top:12px">
+            ${params.curso}
+            ${params.nombreElectiva ? `<div style="font-size:12px;color:#4f46e5;font-weight:500;margin-top:2px">${params.nombreElectiva}</div>` : ''}
+          </td>
         </tr>
       </table>
 

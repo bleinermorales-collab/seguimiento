@@ -121,9 +121,10 @@ export async function POST(req: NextRequest) {
       const filteredRecipients = recipients.filter(email => email !== fromEmail);
       const diParaEmail = rol === 'Diseñador Instruccional' ? (responsable || diNombre) : diNombre;
 
+      const neClean = nombreElectiva?.trim() || undefined;
       sendEmail({
         to: filteredRecipients,
-        subject: `${opcion.label} — ${curso}`,
+        subject: neClean ? `${opcion.label} — ${curso} (${neClean})` : `${opcion.label} — ${curso}`,
         html: buildEmailHtml({
           accion: opcion.label,
           gestor: gestorNombre || responsable,
@@ -131,6 +132,7 @@ export async function POST(req: NextRequest) {
           nivel,
           programa,
           curso,
+          nombreElectiva: neClean,
           fecha: todayString(),
           linkGC: estadoId === 'enviado'
             ? (link?.trim() || courseLinks.linkGC || undefined)
