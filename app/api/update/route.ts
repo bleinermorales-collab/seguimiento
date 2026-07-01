@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     // Info del curso antes de actualizar (para saber gestor/DI asignado)
     const courseInfo = await getCourseInfo(nivel, programa, curso);
-    const courseLinks = getCourseLinks(nivel, programa, curso);
+    const courseLinks = getCourseLinks(nivel, programa, curso, nombreElectiva || undefined);
     const gestorNombre = String(courseInfo?.['Gestor responsable'] ?? courseInfo?.['Gestor responsable '] ?? '').trim();
     const diNombre = String(courseInfo?.['DI responsable'] ?? courseInfo?.['DI asignado'] ?? courseInfo?.['DI Responsable'] ?? '').trim();
 
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     const ok = await updateCourse(nivel, curso, updates, programa, nombreElectiva || undefined);
 
     if (estadoId === 'enviado' && link?.trim()) {
-      setLinkGestor(nivel, programa, curso, link.trim());
+      setLinkGestor(nivel, programa, curso, link.trim(), nombreElectiva || undefined);
     }
 
     // Notificaciones — se envían siempre que la acción sea válida,

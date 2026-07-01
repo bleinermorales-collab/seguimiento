@@ -36,12 +36,13 @@ export async function POST(req: NextRequest) {
 
     // Always persist DI name + link in the JSON sidecar so my-courses works
     // even when the Google Sheet column "DI asignado" doesn't exist.
-    setDI(nivel, programa, curso, di);
+    // Pass nombreElectiva so electivas with the same asignatura name are stored as distinct keys.
+    setDI(nivel, programa, curso, di, nombreElectiva || undefined);
     if (link && link.trim()) {
-      setLinkDI(nivel, programa, curso, link.trim());
+      setLinkDI(nivel, programa, curso, link.trim(), nombreElectiva || undefined);
     }
 
-    const courseLinks = getCourseLinks(nivel, programa, curso);
+    const courseLinks = getCourseLinks(nivel, programa, curso, nombreElectiva || undefined);
     const linkGC = courseLinks.linkGC;
     const linkDI = (link && link.trim()) ? link.trim() : courseLinks.linkDI;
 

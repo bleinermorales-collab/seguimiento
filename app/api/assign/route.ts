@@ -34,10 +34,10 @@ export async function POST(req: NextRequest) {
     if (!ok) return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
 
     if (link && link.trim()) {
-      setLinkGC(nivel, programa, curso, link.trim());
+      setLinkGC(nivel, programa, curso, link.trim(), nombreElectiva || undefined);
     }
 
-    const courseLinks = getCourseLinks(nivel, programa, curso);
+    const courseLinks = getCourseLinks(nivel, programa, curso, nombreElectiva || undefined);
     const linkGC = (link && link.trim()) ? link.trim() : courseLinks.linkGC;
     const linkDI = courseLinks.linkDI;
 

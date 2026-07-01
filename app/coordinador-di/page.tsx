@@ -39,6 +39,9 @@ const ESTADO_BADGE: Record<string, string> = {
   'Aprobado':           'bg-green-100 text-green-700',
 };
 
+function nombreElectiva(c: Curso): string {
+  return String(c['Nombre electiva'] ?? '').trim();
+}
 function diActual(c: Curso): string {
   return String(c['DI asignado'] ?? c['DI responsable'] ?? c['DI Responsable'] ?? c['DI responsable '] ?? '').trim();
 }
@@ -449,6 +452,7 @@ export default function CoordinadorDIPage() {
                             </div>
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</p>
+                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
                               {linkGestor(c) && (
                                 <a href={linkGestor(c)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium mt-0.5" onClick={e => e.stopPropagation()}>
                                   <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
@@ -511,6 +515,7 @@ export default function CoordinadorDIPage() {
                             </div>
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</p>
+                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
                               {linkGestor(c) && (
                                 <a href={linkGestor(c)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium mt-0.5" onClick={e => e.stopPropagation()}>
                                   <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
@@ -571,7 +576,10 @@ export default function CoordinadorDIPage() {
                         <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                           <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
                           <span className="text-xs text-gray-500 truncate">{c._programa}</span>
-                          <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</p>
+                            {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
+                          </div>
                           <span className="text-xs text-gray-500 truncate">{gestorActual(c) || '—'}</span>
                           <span className={`text-xs ${diasClass(dDV)}`}>{diasBadge(dDV)}</span>
                           <span className="text-xs text-gray-500 truncate">{diActual(c) || '—'}</span>
@@ -610,7 +618,10 @@ export default function CoordinadorDIPage() {
                         <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_70px_150px_100px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                           <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
                           <span className="text-xs text-gray-500 truncate">{c._programa}</span>
-                          <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</p>
+                            {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
+                          </div>
                           <span className="text-xs text-gray-500 truncate">{gestorActual(c) || '—'}</span>
                           <span className={`text-xs ${diasClass(dAP)}`}>{diasBadge(dAP)}</span>
                           <span className="text-xs text-gray-500 truncate">{diActual(c) || '—'}</span>
