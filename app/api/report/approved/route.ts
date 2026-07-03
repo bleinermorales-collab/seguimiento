@@ -199,7 +199,8 @@ export async function POST(req: NextRequest) {
     const all = await readAllCourses();
     const approved = all.filter(c => {
       const e = String(c.Estado ?? '').trim();
-      return e === 'Aprobado DI' || e === 'Aprobado';
+      const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
+      return e === 'Aprobado DI' || e === 'Aprobado' || revalidacion === 'Aprobado';
     });
 
     // Window: yesterday 6 PM → today 6 PM. Since dates have no time, include today + yesterday.
@@ -210,7 +211,11 @@ export async function POST(req: NextRequest) {
     const yesterdayStr = fmtDate(yesterday);
 
     const windowApproved = approved.filter(c => {
-      const fecha = parseDateField(c['Fecha fin revisión DI']);
+      const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
+      // Segunda aprobación (post-corrección) usa Fecha revalidación de DI
+      const fecha = revalidacion === 'Aprobado'
+        ? parseDateField(c['Fecha revalidación de DI'])
+        : parseDateField(c['Fecha fin revisión DI']);
       return fecha === todayStr || fecha === yesterdayStr;
     });
 
@@ -256,7 +261,8 @@ export async function GET() {
   const all = await readAllCourses();
   const approved = all.filter(c => {
     const e = String(c.Estado ?? '').trim();
-    return e === 'Aprobado DI' || e === 'Aprobado';
+    const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
+    return e === 'Aprobado DI' || e === 'Aprobado' || revalidacion === 'Aprobado';
   });
 
   const today = new Date();
@@ -266,7 +272,10 @@ export async function GET() {
   const yesterdayStr = fmtDate(yesterday);
 
   const windowApproved = approved.filter(c => {
-    const fecha = parseDateField(c['Fecha fin revisión DI']);
+    const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
+    const fecha = revalidacion === 'Aprobado'
+      ? parseDateField(c['Fecha revalidación de DI'])
+      : parseDateField(c['Fecha fin revisión DI']);
     return fecha === todayStr || fecha === yesterdayStr;
   });
 
