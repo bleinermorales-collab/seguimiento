@@ -4,7 +4,7 @@ import { ESTADOS_GESTOR, ESTADOS_DI } from '@/config/estados';
 import { sendEmail, buildEmailHtml } from '@/lib/email';
 import { NOTIF_BASE } from '@/config/notificaciones';
 import { getGestores, getDIs } from '@/lib/user-management';
-import { getCourseLinks, setLinkGestor } from '@/lib/course-links';
+import { getCourseLinks, setLinkGestor, setRevisionStarted } from '@/lib/course-links';
 
 function todayString(): string {
   const d = new Date();
@@ -148,6 +148,15 @@ export async function POST(req: NextRequest) {
     if (!ok) {
       console.error(`[api/update] updateCourse falló para "${curso}" (nivel: ${nivel}, programa: ${programa}) — el email fue enviado igualmente`);
       return NextResponse.json({ error: `No se encontró el curso "${curso}" en la hoja ${nivel}` }, { status: 404 });
+    }
+
+    // Persist the initiation date in the JSON sidecar so it survives page reloads
+    // even when the GS column "Fecha inicio revisión DI" is missing or the GS write
+    // failed silently. GS is the primary read source, so a failed write means every
+    // subsequent read returns null for this field. The sidecar is injected by
+    // mergeLinksDI (called in my-courses and admin routes) as a fallback.
+    if (estadoId === 'inicio_revision') {
+      setRevisionStarted(nivel, programa, curso, todayString(), nombreElectiva || undefined);
     }
 
     return NextResponse.json({ success: true, updatedFields: Object.keys(updates) });

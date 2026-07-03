@@ -3,7 +3,7 @@ import path from 'path';
 
 const LINKS_PATH = path.join(process.cwd(), 'data', 'course-links.json');
 
-type LinksMap = Record<string, { linkDI?: string; linkGC?: string; linkGestor?: string; di?: string }>;
+type LinksMap = Record<string, { linkDI?: string; linkGC?: string; linkGestor?: string; di?: string; revisionStartedAt?: string }>;
 
 // Normalize a key segment: strip accents, lowercase, trim.
 // Used for both storing and looking up keys so mismatches due to
@@ -90,6 +90,16 @@ export function setDI(nivel: string, programa: string, asignatura: string, nombr
   writeLinks(data);
 }
 
+// Persists the date the DI clicked "Iniciar revisión" so that the field
+// survives across page reloads even when the Google Sheet column is missing
+// or the GS write fails (GS is primary read source, so a failed write loses the data).
+export function setRevisionStarted(nivel: string, programa: string, asignatura: string, date: string, nombreElectiva?: string): void {
+  const data = readLinks();
+  const k = courseKey(nivel, programa, asignatura, nombreElectiva);
+  data[k] = { ...data[k], revisionStartedAt: date };
+  writeLinks(data);
+}
+
 export function mergeLinks(courses: Record<string, unknown>[]): Record<string, unknown>[] {
   const data = readLinks();
   return courses.map(c => {
@@ -109,6 +119,13 @@ export function mergeLinks(courses: Record<string, unknown>[]): Record<string, u
     if (links?.di) {
       const existing = String(patched['DI responsable'] ?? patched['DI Responsable'] ?? patched['DI responsable '] ?? '').trim();
       if (!existing) patched['DI responsable'] = links.di;
+    }
+    // Inject "Fecha inicio revisión DI" from sidecar when GS/Excel doesn't have the column
+    // or the write to GS failed silently (GS is the primary read source, so a failed write
+    // means reads return null for this field even though the action succeeded locally).
+    if (links?.revisionStartedAt) {
+      const existingFecha = String(patched['Fecha inicio revisión DI'] ?? patched['Fecha inicio revision DI'] ?? '').trim();
+      if (!existingFecha) patched['Fecha inicio revisión DI'] = links.revisionStartedAt;
     }
     return patched;
   });

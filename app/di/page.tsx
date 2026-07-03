@@ -120,8 +120,25 @@ export default function DIPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setMessages(m => [...m, { id: Date.now().toString(), type: 'success', text: `Revisión iniciada: "${curso.Asignatura}"` }]);
-      await load();
+      const label = actionId === 'inicio_revision' ? 'Revisión iniciada' : actionId === 'aprobado' ? 'Aprobado' : 'Devuelto';
+      setMessages(m => [...m, { id: Date.now().toString(), type: 'success', text: `${label}: "${curso.Asignatura}"` }]);
+
+      // For inicio_revision, update local state immediately so the button switches
+      // to "Aprobar / Devolver" without waiting for the GS read in load().
+      // The server also persists revisionStartedAt in the JSON sidecar so the
+      // state survives page reloads even when the GS column is missing.
+      if (actionId === 'inicio_revision') {
+        const d = new Date();
+        const todayStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        setCursos(prev => prev.map(c =>
+          (c._nivel === curso._nivel && c._programa === curso._programa && c.Asignatura === curso.Asignatura)
+            ? { ...c, 'Fecha inicio revisión DI': todayStr, Estado: 'En revisión', 'DI responsable': session?.user?.name || '' }
+            : c
+        ));
+        load(); // background refresh — don't await so the optimistic update stays visible
+      } else {
+        await load();
+      }
     } catch (err) {
       setMessages(m => [...m, { id: Date.now().toString(), type: 'error', text: err instanceof Error ? err.message : 'Error al iniciar revisión' }]);
     } finally {
