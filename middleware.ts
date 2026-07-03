@@ -10,8 +10,8 @@ function redir(path: string, req: NextRequest) {
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  // next-auth internal routes — never touch them
-  if (path.startsWith('/api/auth')) return NextResponse.next();
+  // API routes handle their own auth — never redirect them to login
+  if (path.startsWith('/api/')) return NextResponse.next();
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
