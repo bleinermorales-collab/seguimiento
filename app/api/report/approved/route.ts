@@ -252,6 +252,7 @@ export async function GET() {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 
+  try {
   const all = await readAllCourses();
   const approved = all.filter(c => {
     const e = String(c.Estado ?? '').trim();
@@ -283,4 +284,8 @@ export async function GET() {
       count: g.cursos.length,
     })),
   });
+  } catch (err) {
+    console.error('[api/report/approved GET]', err);
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+  }
 }

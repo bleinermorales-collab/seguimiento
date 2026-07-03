@@ -37,7 +37,10 @@ export default withAuth(
 
     if (path.startsWith('/gestor') && role !== 'Gestor') return redir('/login', req);
     if (path.startsWith('/di') && role !== 'Diseñador Instruccional') return redir('/login', req);
-    if (path.startsWith('/coordinador') && role !== 'Coordinador') return redir('/login', req);
+    if (path.startsWith('/coordinador-di')) {
+      if (role !== 'Coordinador' || (token.email as string | undefined) !== 'coordinacion_di@americana.edu.co')
+        return redir('/login', req);
+    } else if (path.startsWith('/coordinador') && role !== 'Coordinador') return redir('/login', req);
     if (path.startsWith('/admin') && role !== 'Super Admin') return redir('/login', req);
 
     return NextResponse.next();

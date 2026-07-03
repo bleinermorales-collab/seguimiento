@@ -7,6 +7,32 @@ import { sendEmail, buildEmailHtml } from '@/lib/email';
 import { NOTIF_BASE } from '@/config/notificaciones';
 import { getGestores, getAllUsers } from '@/lib/user-management';
 
+function normName(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+function nameMatches(stored: string, full: string): boolean {
+  if (!stored || !full) return false;
+  if (stored === full) return true;
+  const shorter = stored.length <= full.length ? stored : full;
+  const longer  = stored.length <= full.length ? full   : stored;
+  const shortWords = shorter.split(' ').filter(Boolean);
+  if (shortWords.length < 2) return false;
+  const longWords = longer.split(' ').filter(Boolean);
+  let li = 0;
+  for (const sw of shortWords) {
+    while (li < longWords.length && longWords[li] !== sw) li++;
+    if (li >= longWords.length) return false;
+    li++;
+  }
+  return true;
+}
+function lookupEmail(list: { nombre: string; email: string }[], nombre: string): string | undefined {
+  const n = normName(nombre);
+  const exact = list.find(p => normName(p.nombre) === n);
+  if (exact) return exact.email;
+  return list.find(p => nameMatches(n, normName(p.nombre)))?.email;
+}
+
 function todayString(): string {
   const d = new Date();
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
@@ -46,7 +72,7 @@ export async function POST(req: NextRequest) {
     const fromEmail = coordUser?.email || user?.email;
 
     // TO: gestor asignado + CGC + CDI + IE (sin incluir al remitente)
-    const gestorEmail = getGestores().find(g => g.nombre === gestor)?.email;
+    const gestorEmail = lookupEmail(getGestores(), gestor);
     const recipients = [...NOTIF_BASE.asignacion_gestor, ...(gestorEmail ? [gestorEmail] : [])]
       .filter(email => email !== fromEmail);
 

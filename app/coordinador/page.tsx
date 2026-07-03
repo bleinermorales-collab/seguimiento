@@ -413,7 +413,7 @@ export default function CoordinadorPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-0 -mb-px">
             <button
-              onClick={() => setActiveTab('todos')}
+              onClick={() => { setActiveTab('todos'); setPage(1); }}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                 activeTab === 'todos'
                   ? 'border-emerald-600 text-emerald-600'
@@ -430,7 +430,7 @@ export default function CoordinadorPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('asignar')}
+              onClick={() => { setActiveTab('asignar'); setPage(1); }}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                 activeTab === 'asignar'
                   ? 'border-indigo-600 text-indigo-600'
@@ -447,7 +447,7 @@ export default function CoordinadorPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('asignados')}
+              onClick={() => { setActiveTab('asignados'); setPage(1); }}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                 activeTab === 'asignados'
                   ? 'border-emerald-500 text-emerald-600'
@@ -464,7 +464,7 @@ export default function CoordinadorPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('aprobados')}
+              onClick={() => { setActiveTab('aprobados'); setPage(1); }}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                 activeTab === 'aprobados'
                   ? 'border-green-600 text-green-700'
@@ -481,7 +481,7 @@ export default function CoordinadorPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('devueltos')}
+              onClick={() => { setActiveTab('devueltos'); setPage(1); }}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                 activeTab === 'devueltos'
                   ? 'border-red-500 text-red-600'
@@ -735,7 +735,7 @@ export default function CoordinadorPage() {
             type="text"
             placeholder="Buscar curso o programa..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
             className="flex-1 min-w-[200px] px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
           <select
@@ -758,7 +758,7 @@ export default function CoordinadorPage() {
           </select>
           <select
             value={filterModalidad}
-            onChange={e => setFilterModalidad(e.target.value)}
+            onChange={e => { setFilterModalidad(e.target.value); setPage(1); }}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
           >
             <option value="">Todas las modalidades</option>
@@ -766,7 +766,7 @@ export default function CoordinadorPage() {
           </select>
           <select
             value={filterSemestre}
-            onChange={e => setFilterSemestre(e.target.value)}
+            onChange={e => { setFilterSemestre(e.target.value); setPage(1); }}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
           >
             <option value="">Todos los semestres</option>
@@ -774,7 +774,7 @@ export default function CoordinadorPage() {
           </select>
           <select
             value={filterGestor}
-            onChange={e => setFilterGestor(e.target.value)}
+            onChange={e => { setFilterGestor(e.target.value); setPage(1); }}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
           >
             <option value="">Todos los gestores</option>

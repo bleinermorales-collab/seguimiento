@@ -97,7 +97,8 @@ export async function POST(req: NextRequest) {
 
     const ok = await updateCourse(nivel, curso, updates, programa, nombreElectiva || undefined);
 
-    if (estadoId === 'enviado' && link?.trim()) {
+    // Link sidecar written only after confirmed update to avoid orphan entries
+    if (ok && estadoId === 'enviado' && link?.trim()) {
       setLinkGestor(nivel, programa, curso, link.trim(), nombreElectiva || undefined);
     }
 

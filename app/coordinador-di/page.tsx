@@ -119,7 +119,10 @@ export default function CoordinadorDIPage() {
     })();
   }, []);
 
-  const key = (c: Curso) => `${c._nivel}::${c._programa}::${c.Asignatura}`;
+  const key = (c: Curso) => {
+    const ne = nombreElectiva(c);
+    return ne ? `${c._nivel}::${c._programa}::${c.Asignatura}::${ne}` : `${c._nivel}::${c._programa}::${c.Asignatura}`;
+  };
 
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const applyFilters = (list: Curso[]) => list.filter(c => {

@@ -133,8 +133,8 @@ export async function readSheet(nivel: string): Promise<Record<string, unknown>[
     // "Gestor responsable ", "Gestor Responsable", etc. all become "Gestor responsable".
     // This ensures my-courses and other routes work regardless of GS header spelling.
     const obj = normalizeRowKeys(raw);
-    if (raw['Programa'] != null && String(raw['Programa']).trim()) lastPrograma = String(raw['Programa']).trim();
-    if (raw['Modalidad'] != null && String(raw['Modalidad']).trim()) lastModalidad = String(raw['Modalidad']).trim();
+    if (obj['Programa'] != null && String(obj['Programa']).trim()) lastPrograma = String(obj['Programa']).trim();
+    if (obj['Modalidad'] != null && String(obj['Modalidad']).trim()) lastModalidad = String(obj['Modalidad']).trim();
     obj._programa = lastPrograma;
     obj._modalidad = lastModalidad;
     return obj;
