@@ -33,6 +33,7 @@ interface Curso {
   'Estado de la revalidación DI'?: string;
   'Fin Gestor'?: string;
   'Fecha fin revisión DI'?: string;
+  'Fecha revalidación de DI'?: string;
   Semestre?: string | number;
   'Nombre electiva'?: string;
 }
@@ -220,12 +221,19 @@ export default function DIPage() {
     if (revalidacion === 'En revalidación' && !fechaCorr) return false;
     return true;
   }), c => parseDate(c['Fin Gestor']));
-  const aprobados = sortByDate(cursosNivel.filter(c => { const e = String(c.Estado ?? '').trim(); return e === 'Aprobado DI' || e === 'Aprobado'; }), c => parseDate(c['Fecha fin revisión DI']));
+  const aprobados = sortByDate(cursosNivel.filter(c => {
+    const e = String(c.Estado ?? '').trim();
+    const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
+    // Incluye aprobaciones normales y segunda aprobación post-corrección
+    return e === 'Aprobado DI' || e === 'Aprobado' || revalidacion === 'Aprobado';
+  }), c => parseDate(c['Fecha revalidación de DI'] ?? c['Fecha fin revisión DI']));
   const devueltos = sortByDate(cursosNivel.filter(c => {
     const estado = String(c.Estado ?? '').trim();
     const estadoCurso = String(c['Estado curso'] ?? '').trim();
     const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
     const fechaCorr = String(c['Fecha fin corrección gestor'] ?? c['Fecha fin corrección docente'] ?? '').trim();
+    // Una vez que la revalidación fue aprobada, ya no está en devueltos
+    if (revalidacion === 'Aprobado') return false;
     // Devueltos: Estado curso='Corrección' (esperando gestor O gestor ya corrigió)
     return estado === 'Corrección'              // datos legacy
       || estadoCurso === 'Corrección'           // flujo actual (con o sin corrección del gestor)
