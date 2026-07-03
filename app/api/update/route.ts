@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
       const revalidacion = String(courseInfo?.['Estado de la revalidación DI'] ?? '').trim();
       if (revalidacion === 'En revalidación') {
         delete updates['Estado curso'];
+        delete updates['Fecha fin revisión DI'];
         updates['Estado de la revalidación DI'] = 'Aprobado';
         updates['Fecha revalidación de DI'] = today;
       }
