@@ -84,8 +84,8 @@ export async function POST(req: NextRequest) {
       updates['DI responsable'] = responsable;
     }
     // Cuando el DI aprueba un curso que estaba en revalidación:
-    // - NO escribir Estado curso (debe conservar 'Corrección')
-    // - Escribir Estado de la revalidación DI = 'Aprobado' y Fecha revalidación de DI
+    // - Estado curso = 'Aprobado' (igual que aprobación normal)
+    // - Estado de la revalidación DI = 'Aprobado', Fecha revalidación de DI = hoy
     if (estadoId === 'aprobado') {
       const revalidacion = String(courseInfo?.['Estado de la revalidación DI'] ?? '').trim();
       if (revalidacion === 'En revalidación') {
