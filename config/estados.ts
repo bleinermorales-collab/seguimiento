@@ -81,8 +81,9 @@ export const ESTADOS_DI: EstadoOption[] = [
     updates: {
       'Estado': 'Corrección',
       'Estado curso': 'Corrección',
-      'Estado de la revalidación DI': 'En revalidación',
       'Fecha fin revisión DI': '__TODAY__',
+      // Estado de la revalidación DI NO se establece aquí — solo el 'corregido'
+      // del gestor lo marca como 'En revalidación' cuando efectivamente corrige.
     },
     notifyRole: 'gestor',
   },

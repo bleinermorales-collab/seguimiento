@@ -89,7 +89,8 @@ export async function POST(req: NextRequest) {
     if (estadoId === 'aprobado') {
       const revalidacion = String(courseInfo?.['Estado de la revalidación DI'] ?? '').trim();
       if (revalidacion === 'En revalidación') {
-        delete updates['Estado curso'];
+        // Keep 'Estado curso': 'Aprobado' (from the base updates) — do NOT delete it.
+        // This ensures the Excel shows a consistent approved state after correction.
         updates['Estado de la revalidación DI'] = 'Aprobado';
         updates['Fecha revalidación de DI'] = today;
       }

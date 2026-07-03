@@ -212,22 +212,20 @@ export default function DIPage() {
     const estado = String(c.Estado ?? '').trim();
     const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
     const fechaCorr = String(c['Fecha fin corrección gestor'] ?? c['Fecha fin corrección docente'] ?? '').trim();
-    // Show only first-time pending: "Enviado a revisión" or "En revisión" but NOT in revalidation
-    return (estado === 'En revisión' || estado === 'Enviado a revisión')
-      && revalidacion !== 'En revalidación'
-      && !fechaCorr;
+    if (estado !== 'En revisión' && estado !== 'Enviado a revisión') return false;
+    // Exclude courses waiting for gestor correction (devuelto but gestor hasn't corrected yet)
+    if (revalidacion === 'En revalidación' && !fechaCorr) return false;
+    return true;
   }), c => parseDate(c['Fin Gestor']));
   const aprobados = sortByDate(cursosNivel.filter(c => { const e = String(c.Estado ?? '').trim(); return e === 'Aprobado DI' || e === 'Aprobado'; }), c => parseDate(c['Fecha fin revisión DI']));
   const devueltos = sortByDate(cursosNivel.filter(c => {
     const estado = String(c.Estado ?? '').trim();
     const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
     const fechaCorr = String(c['Fecha fin corrección gestor'] ?? c['Fecha fin corrección docente'] ?? '').trim();
-    // "Corrección": DI devolvió (Estado updated by devuelto fix)
-    // "En revalidación": gestor ya corrigió, DI needs to re-review
-    // fallback: fechaCorr set + still in revisión (when revalidación column missing in sheet)
+    // Devueltos: DI returned the course, gestor hasn't corrected yet
+    // (includes legacy data where Estado de la revalidación DI was set by devuelto action)
     return estado === 'Corrección'
-      || revalidacion === 'En revalidación'
-      || (!!fechaCorr && (estado === 'En revisión' || estado === 'Enviado a revisión'));
+      || (revalidacion === 'En revalidación' && !fechaCorr);
   }), c => parseDate(c['Fecha fin revisión DI']));
 
   const tabs: { id: TabId; label: string; count: number; color: string; activeColor: string }[] = [
@@ -396,29 +394,40 @@ export default function DIPage() {
                     </div>
                   </div>
 
-                  {/* Pendientes: botones inicio revisión o aprobar/devolver */}
+                  {/* Pendientes: inicio revisión (primera vez) o aprobar/devolver (ya iniciado o revalidación) */}
                   {activeTab === 'pendientes' && (() => {
                     const iniciado = !!(
                       String(c['Fecha inicio revisión DI'] ?? c['Fecha inicio revision DI'] ?? '').trim()
                     );
-                    return iniciado ? (
-                      <div className="flex gap-2 shrink-0">
-                        <button
-                          onClick={() => handleDirectAction(c, 'aprobado')}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                          Aprobar
-                        </button>
-                        <button
-                          onClick={() => setPendingAction({ curso: c, actionId: 'devuelto', obs: '' })}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                          Devolver
-                        </button>
-                      </div>
-                    ) : (
+                    const esRevalidacion = revalidacion === 'En revalidación' && !!fechaCorreccion;
+                    // Revalidation or already-initiated: show approve/return
+                    if (iniciado || esRevalidacion) {
+                      return (
+                        <div className="flex items-center gap-2 shrink-0">
+                          {esRevalidacion && (
+                            <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                              Corrección
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleDirectAction(c, 'aprobado')}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                            Aprobar
+                          </button>
+                          <button
+                            onClick={() => setPendingAction({ curso: c, actionId: 'devuelto', obs: '' })}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                            Devolver
+                          </button>
+                        </div>
+                      );
+                    }
+                    // First time: must initiate review
+                    return (
                       <button
                         onClick={() => handleDirectAction(c, 'inicio_revision')}
                         disabled={saving}
@@ -437,31 +446,11 @@ export default function DIPage() {
                     </span>
                   )}
 
-                  {/* Devueltos: botones si gestor ya corrigió, badge si aún espera */}
+                  {/* Devueltos: esperando que el gestor corrija */}
                   {activeTab === 'devueltos' && (
-                    revalidacion === 'En revalidación' && !!fechaCorreccion ? (
-                      <div className="flex gap-2 shrink-0">
-                        <span className="self-center text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full mr-1">Revalidación</span>
-                        <button
-                          onClick={() => handleDirectAction(c, 'aprobado')}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                          Aprobar
-                        </button>
-                        <button
-                          onClick={() => setPendingAction({ curso: c, actionId: 'devuelto', obs: '' })}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                          Devolver
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap w-fit bg-red-100 text-red-700">
-                        {estadoCurso === 'Corrección' || estado === 'Corrección' ? 'Esperando gestor' : estado}
-                      </span>
-                    )
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap w-fit bg-red-100 text-red-700">
+                      Esperando gestor
+                    </span>
                   )}
                 </div>
               );
