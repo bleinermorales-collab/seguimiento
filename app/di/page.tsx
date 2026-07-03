@@ -214,9 +214,9 @@ export default function DIPage() {
     const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
     const fechaCorr = String(c['Fecha fin corrección gestor'] ?? c['Fecha fin corrección docente'] ?? '').trim();
     if (estado !== 'En revisión' && estado !== 'Enviado a revisión') return false;
-    // Excluir: devuelto esperando corrección del gestor (Estado curso='Corrección' sin fecha de corrección)
-    if (estadoCurso === 'Corrección' && !fechaCorr) return false;
-    // Excluir: datos legacy donde devuelto seteaba revalidación prematuramente
+    // Cualquier curso con Estado curso='Corrección' va a Devueltos, no a Pendientes
+    if (estadoCurso === 'Corrección') return false;
+    // Datos legacy: revalidación seteada sin fecha de corrección
     if (revalidacion === 'En revalidación' && !fechaCorr) return false;
     return true;
   }), c => parseDate(c['Fin Gestor']));
@@ -226,10 +226,10 @@ export default function DIPage() {
     const estadoCurso = String(c['Estado curso'] ?? '').trim();
     const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
     const fechaCorr = String(c['Fecha fin corrección gestor'] ?? c['Fecha fin corrección docente'] ?? '').trim();
-    // Devueltos: DI devolvió, gestor aún no corrige
-    return estado === 'Corrección'  // datos legacy
-      || (estadoCurso === 'Corrección' && !fechaCorr)  // flujo actual
-      || (revalidacion === 'En revalidación' && !fechaCorr);  // datos legacy con revalidación prematura
+    // Devueltos: Estado curso='Corrección' (esperando gestor O gestor ya corrigió)
+    return estado === 'Corrección'              // datos legacy
+      || estadoCurso === 'Corrección'           // flujo actual (con o sin corrección del gestor)
+      || (revalidacion === 'En revalidación' && !fechaCorr);  // datos legacy
   }), c => parseDate(c['Fecha fin revisión DI']));
 
   const tabs: { id: TabId; label: string; count: number; color: string; activeColor: string }[] = [
@@ -404,15 +404,10 @@ export default function DIPage() {
                       String(c['Fecha inicio revisión DI'] ?? c['Fecha inicio revision DI'] ?? '').trim()
                     );
                     const esRevalidacion = revalidacion === 'En revalidación' && !!fechaCorreccion;
-                    // Revalidation or already-initiated: show approve/return
+                    // Already-initiated: show approve/return
                     if (iniciado || esRevalidacion) {
                       return (
                         <div className="flex items-center gap-2 shrink-0">
-                          {esRevalidacion && (
-                            <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
-                              Corrección
-                            </span>
-                          )}
                           <button
                             onClick={() => handleDirectAction(c, 'aprobado')}
                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
@@ -450,11 +445,31 @@ export default function DIPage() {
                     </span>
                   )}
 
-                  {/* Devueltos: esperando que el gestor corrija */}
+                  {/* Devueltos: botones si gestor ya corrigió, badge si aún espera */}
                   {activeTab === 'devueltos' && (
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap w-fit bg-red-100 text-red-700">
-                      Esperando gestor
-                    </span>
+                    revalidacion === 'En revalidación' && !!fechaCorreccion ? (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Corrección</span>
+                        <button
+                          onClick={() => handleDirectAction(c, 'aprobado')}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                          Aprobar
+                        </button>
+                        <button
+                          onClick={() => setPendingAction({ curso: c, actionId: 'devuelto', obs: '' })}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                          Devolver
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap w-fit bg-red-100 text-red-700">
+                        Esperando gestor
+                      </span>
+                    )
                   )}
                 </div>
               );
