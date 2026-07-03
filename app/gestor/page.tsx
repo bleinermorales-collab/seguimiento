@@ -34,6 +34,13 @@ interface Curso {
   'Fecha fin corrección gestor'?: string;
   'Fecha fin corrección docente'?: string;
   'Nombre electiva'?: string;
+  'DI responsable'?: string;
+  'DI asignado'?: string;
+  'DI Responsable'?: string;
+}
+
+function diAsignado(c: Curso): string {
+  return String(c['DI responsable'] ?? c['DI asignado'] ?? c['DI Responsable'] ?? '').trim();
 }
 
 function isPriority(c: Curso): boolean {
@@ -446,6 +453,11 @@ export default function GestorPage() {
                       {curso._modalidad ? ` · ${curso._modalidad}` : ''}
                       {curso.Semestre ? ` · Semestre ${curso.Semestre}` : ''}
                     </p>
+                    {diAsignado(curso) && (
+                      <p className="text-xs text-violet-600 mt-0.5 font-medium">
+                        DI: {diAsignado(curso)}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     {/* Estado badge */}
