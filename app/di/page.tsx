@@ -210,22 +210,26 @@ export default function DIPage() {
   const semestres = [...new Set(cursos.map(c => String(c.Semestre ?? '')).filter(s => !!s && s !== 'null'))].sort((a, b) => (+a || 0) - (+b || 0));
   const pendientes = sortByDate(cursosNivel.filter(c => {
     const estado = String(c.Estado ?? '').trim();
+    const estadoCurso = String(c['Estado curso'] ?? '').trim();
     const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
     const fechaCorr = String(c['Fecha fin corrección gestor'] ?? c['Fecha fin corrección docente'] ?? '').trim();
     if (estado !== 'En revisión' && estado !== 'Enviado a revisión') return false;
-    // Exclude courses waiting for gestor correction (devuelto but gestor hasn't corrected yet)
+    // Excluir: devuelto esperando corrección del gestor (Estado curso='Corrección' sin fecha de corrección)
+    if (estadoCurso === 'Corrección' && !fechaCorr) return false;
+    // Excluir: datos legacy donde devuelto seteaba revalidación prematuramente
     if (revalidacion === 'En revalidación' && !fechaCorr) return false;
     return true;
   }), c => parseDate(c['Fin Gestor']));
   const aprobados = sortByDate(cursosNivel.filter(c => { const e = String(c.Estado ?? '').trim(); return e === 'Aprobado DI' || e === 'Aprobado'; }), c => parseDate(c['Fecha fin revisión DI']));
   const devueltos = sortByDate(cursosNivel.filter(c => {
     const estado = String(c.Estado ?? '').trim();
+    const estadoCurso = String(c['Estado curso'] ?? '').trim();
     const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
     const fechaCorr = String(c['Fecha fin corrección gestor'] ?? c['Fecha fin corrección docente'] ?? '').trim();
-    // Devueltos: DI returned the course, gestor hasn't corrected yet
-    // (includes legacy data where Estado de la revalidación DI was set by devuelto action)
-    return estado === 'Corrección'
-      || (revalidacion === 'En revalidación' && !fechaCorr);
+    // Devueltos: DI devolvió, gestor aún no corrige
+    return estado === 'Corrección'  // datos legacy
+      || (estadoCurso === 'Corrección' && !fechaCorr)  // flujo actual
+      || (revalidacion === 'En revalidación' && !fechaCorr);  // datos legacy con revalidación prematura
   }), c => parseDate(c['Fecha fin revisión DI']));
 
   const tabs: { id: TabId; label: string; count: number; color: string; activeColor: string }[] = [

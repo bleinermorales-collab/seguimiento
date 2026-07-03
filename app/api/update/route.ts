@@ -83,14 +83,14 @@ export async function POST(req: NextRequest) {
     if (rol === 'Diseñador Instruccional' && responsable) {
       updates['DI responsable'] = responsable;
     }
-    // Cuando el DI aprueba un curso que estaba en revalidación:
-    // - Estado curso = 'Aprobado' (igual que aprobación normal)
-    // - Estado de la revalidación DI = 'Aprobado', Fecha revalidación de DI = hoy
+    // Segunda aprobación DI (después de corrección del gestor):
+    // - Estado curso queda en 'Corrección' (no se sobreescribe con 'Aprobado')
+    // - Estado de la revalidación DI = 'Aprobado'
+    // - Fecha revalidación DI = hoy
     if (estadoId === 'aprobado') {
       const revalidacion = String(courseInfo?.['Estado de la revalidación DI'] ?? '').trim();
       if (revalidacion === 'En revalidación') {
-        // Keep 'Estado curso': 'Aprobado' (from the base updates) — do NOT delete it.
-        // This ensures the Excel shows a consistent approved state after correction.
+        delete updates['Estado curso'];
         updates['Estado de la revalidación DI'] = 'Aprobado';
         updates['Fecha revalidación de DI'] = today;
       }

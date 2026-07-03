@@ -79,11 +79,10 @@ export const ESTADOS_DI: EstadoOption[] = [
     badgeColor: 'red',
     registraLabel: null,
     updates: {
-      'Estado': 'Corrección',
+      // Estado principal NO cambia — el curso sigue "En revisión".
+      // Solo Estado curso se marca como Corrección para que el gestor sepa que debe corregir.
       'Estado curso': 'Corrección',
       'Fecha fin revisión DI': '__TODAY__',
-      // Estado de la revalidación DI NO se establece aquí — solo el 'corregido'
-      // del gestor lo marca como 'En revalidación' cuando efectivamente corrige.
     },
     notifyRole: 'gestor',
   },
