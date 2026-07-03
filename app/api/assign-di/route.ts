@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     const today = new Date();
     const updates: Record<string, unknown> = {
       'DI asignado': di,
-      'Fecha de asignación': today,
+      'Fecha de asignación DI': today,
       'Estado de la asignación': 'Asignado',
     };
 

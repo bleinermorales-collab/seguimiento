@@ -25,6 +25,7 @@ interface Curso {
   'DI responsable '?: string;
   'Fin Gestor'?: string;
   'Fecha de asignación'?: string;
+  'Fecha de asignación DI'?: string;
   'Fecha fin revisión DI'?: string;
   'Nombre electiva'?: string;
 }
@@ -131,7 +132,7 @@ export default function CoordinadorDIPage() {
     if (filterModalidad && String(c._modalidad ?? '').trim() !== filterModalidad) return false;
     if (filterSemestre && String(c.Semestre ?? '').trim() !== filterSemestre) return false;
     if (filterFechaDesde || filterFechaHasta) {
-      const fa = parseDate(c['Fecha de asignación']);
+      const fa = parseDate(c['Fecha de asignación DI']);
       if (!fa) return false;
       if (filterFechaDesde && fa < new Date(filterFechaDesde)) return false;
       if (filterFechaHasta && fa > new Date(filterFechaHasta + 'T23:59:59')) return false;
@@ -156,7 +157,7 @@ export default function CoordinadorDIPage() {
   };
   const enRevision = cursos.filter(isParaRevisar);
   const porAsignar = sortByDate(applyFilters(enRevision.filter(c => !diActual(c))), c => parseDate(c['Fin Gestor']));
-  const asignados  = sortByDate(applyFilters(enRevision.filter(c => !!diActual(c))), c => parseDate(c['Fecha de asignación']));
+  const asignados  = sortByDate(applyFilters(enRevision.filter(c => !!diActual(c))), c => parseDate(c['Fecha de asignación DI']));
   const devueltos  = sortByDate(applyFilters(cursos.filter(isDevuelto)), c => parseDate(c['Fecha fin revisión DI']));
   const aprobados  = sortByDate(applyFilters(cursos.filter(c => {
     const e = String(c.Estado ?? '').trim();
@@ -188,8 +189,9 @@ export default function CoordinadorDIPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      const todayStr = (() => { const d = new Date(); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; })();
       setCursos(prev => prev.map(c =>
-        key(c) === k ? { ...c, 'DI asignado': modal.di, 'Link DI': modal.link || c['Link DI'] } : c
+        key(c) === k ? { ...c, 'DI asignado': modal.di, 'Link DI': modal.link || c['Link DI'], 'Fecha de asignación DI': todayStr } : c
       ));
       const action = diActual(modal.curso) ? 'Reasignado' : 'Asignado';
       setMessages(m => [...m, { id: Date.now().toString(), type: 'success', text: `${action} "${modal.curso.Asignatura}" → ${modal.di}` }]);
@@ -520,7 +522,7 @@ export default function CoordinadorDIPage() {
                           No hay cursos en revisión con DI asignado.
                         </div>
                       ) : asignados.map((c, i) => {
-                        const fechaAsig = parseDate(c['Fecha de asignación']);
+                        const fechaAsig = parseDate(c['Fecha de asignación DI']);
                         return (
                           <div key={i} className="grid grid-cols-[150px_250px_1fr_130px_100px_150px_130px] items-center gap-3 px-5 py-3 hover:bg-gray-50/50">
                             <span className="text-xs text-gray-400 truncate">{c._nivel}</span>
