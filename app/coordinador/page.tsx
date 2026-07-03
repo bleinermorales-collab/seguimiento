@@ -1022,10 +1022,10 @@ export default function CoordinadorPage() {
                               <div className="min-w-0">
                                 <div className="flex items-center gap-1.5">
                                   {priority && <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>}
-                                  <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                                  <span className="text-sm font-medium text-gray-900">{c.Asignatura}</span>
                                 </div>
                                 {nombreElectiva(c) && (
-                                  <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>
+                                  <p className="text-xs text-indigo-500 mt-0.5">{nombreElectiva(c)}</p>
                                 )}
                               </div>
                               <span className="text-xs text-gray-400 text-center">{c.Semestre || '—'}</span>
@@ -1086,9 +1086,9 @@ export default function CoordinadorPage() {
                                 {priority && (
                                   <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>
                                 )}
-                                <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                                <span className="text-sm font-medium text-gray-900">{c.Asignatura}</span>
                               </div>
-                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
+                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5">{nombreElectiva(c)}</p>}
                             </div>
                             <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full truncate border border-emerald-200" title={actual}>{actual}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${ESTADO_BADGE[estado] || 'bg-gray-100 text-gray-600'}`}>{estado}</span>
@@ -1160,9 +1160,9 @@ export default function CoordinadorPage() {
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 {priority && <span className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wide">Prioridad</span>}
-                                <span className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</span>
+                                <span className="text-sm font-medium text-gray-900">{c.Asignatura}</span>
                               </div>
-                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
+                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5">{nombreElectiva(c)}</p>}
                             </div>
                             <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full truncate border border-emerald-200" title={actual}>{actual || '—'}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${estadoBadge[estado] || 'bg-gray-100 text-gray-600'}`}>{estado}</span>
@@ -1211,8 +1211,8 @@ export default function CoordinadorPage() {
                             <span className="text-xs text-gray-400">{c._nivel}</span>
                             <span className="text-xs text-gray-500">{c._programa}</span>
                             <div className="min-w-0">
-                              <span className="text-sm font-medium text-gray-900 truncate block">{c.Asignatura}</span>
-                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
+                              <span className="text-sm font-medium text-gray-900 block">{c.Asignatura}</span>
+                              {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5">{nombreElectiva(c)}</p>}
                             </div>
                             <span className="text-xs text-gray-500 truncate">{gestorActual(c) || '—'}</span>
                             <span className={`text-xs ${diasClass(dDV)}`}>{diasBadge(dDV)}</span>
