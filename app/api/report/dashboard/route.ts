@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { readAllCourses } from '@/lib/sheets';
 import ExcelJS from 'exceljs';
+import { normalizarNombre } from '@/lib/nombre-aliases';
 
 type Curso = Record<string, unknown>;
 type EstadoCat = 'sinIniciar' | 'proceso' | 'revision' | 'correccion' | 'aprobado';
@@ -155,7 +156,7 @@ export async function GET() {
       else if (sem === '2') ps.sem2++;
       else if (sem === '3') ps.sem3++;
 
-      const g = getGestor(c);
+      const g = normalizarNombre(getGestor(c));
       if (g) {
         if (!gestorMap.has(g)) gestorMap.set(g, { nombre: g, total: 0, sinIniciar: 0, proceso: 0, revision: 0, correccion: 0, aprobado: 0, cursos: [] });
         const gs = gestorMap.get(g)!;
@@ -163,7 +164,7 @@ export async function GET() {
         gs.cursos.push({ nivel, programa, asignatura: String(c.Asignatura ?? '').trim(), estado: String(c.Estado ?? '').trim(), estadoCat: cat, other: getDI(c) });
       }
 
-      const di = getDI(c);
+      const di = normalizarNombre(getDI(c));
       if (di) {
         if (!diMap.has(di)) diMap.set(di, { nombre: di, total: 0, sinIniciar: 0, proceso: 0, revision: 0, correccion: 0, aprobado: 0, cursos: [] });
         const ds = diMap.get(di)!;

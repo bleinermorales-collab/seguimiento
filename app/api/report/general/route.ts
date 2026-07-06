@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { readAllCourses } from '@/lib/sheets';
 import { sendEmail } from '@/lib/email';
+import { normalizarNombre } from '@/lib/nombre-aliases';
 
 const DEST_EMAIL = 'lizneyr@americana.edu.co';
 
@@ -73,14 +74,14 @@ function computeStats(courses: Curso[]): Stats {
     byNivel[nivel].total++;
     byNivel[nivel].byEstado[estado]++;
 
-    const di = String(c['DI responsable'] ?? c['DI asignado'] ?? '').trim();
+    const di = normalizarNombre(String(c['DI responsable'] ?? c['DI asignado'] ?? '').trim());
     if (di) {
       if (!byDI[di]) byDI[di] = { total: 0, byEstado: {} };
       byDI[di].total++;
       byDI[di].byEstado[estado] = (byDI[di].byEstado[estado] ?? 0) + 1;
     }
 
-    const g = String(c['Gestor responsable '] ?? c['Gestor responsable'] ?? '').trim();
+    const g = normalizarNombre(String(c['Gestor responsable '] ?? c['Gestor responsable'] ?? '').trim());
     if (g) {
       if (!byGestor[g]) byGestor[g] = { total: 0, byEstado: {} };
       byGestor[g].total++;
