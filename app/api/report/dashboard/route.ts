@@ -226,7 +226,8 @@ export async function GET() {
     ];
     XLSX.utils.book_append_sheet(wb, ws5, 'Todos los cursos');
 
-    const buffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as Uint8Array;
+    const rawArray = XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as number[];
+    const buffer = new Uint8Array(rawArray);
     const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
