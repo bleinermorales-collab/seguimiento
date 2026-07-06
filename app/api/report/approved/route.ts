@@ -51,10 +51,15 @@ function groupCourses(courses: Curso[]): Grupo[] {
   });
 }
 
+function getGestor(c: Curso): string {
+  return String(c['Gestor responsable'] ?? c['Gestor responsable '] ?? c['Gestor asignado'] ?? '').trim();
+}
+
 function cursoline(c: Curso): string {
   const prog = String(c._programa ?? '').trim();
   const asig = String(c.Asignatura ?? '').trim();
-  return `${prog} - ${asig} (aprobado)`;
+  const g = getGestor(c);
+  return `${prog} - ${asig}${g ? ` [${g}]` : ''} (aprobado)`;
 }
 
 function buildPlainText(grupos: Grupo[], fecha: Date): string {
@@ -97,11 +102,13 @@ function buildReportHtml(grupos: Grupo[], plainText: string, fecha: Date, totalA
       coursesHtml += `<div style="font-size:11px;font-weight:700;color:#374151;margin:12px 0 6px;letter-spacing:.5px">${g.proyecto}</div>`;
     }
     for (const c of g.cursos) {
+      const gc = getGestor(c);
       coursesHtml += `<div style="font-size:13px;color:#1a1a2e;padding:5px 0;border-bottom:1px solid #f3f4f6;line-height:1.4">
         <span style="color:#6b7280">${String(c._programa ?? '')}</span>
         <span style="color:#9ca3af;margin:0 6px">—</span>
         <strong>${String(c.Asignatura ?? '')}</strong>
         <span style="display:inline-block;margin-left:8px;background:#d1fae5;color:#065f46;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">aprobado</span>
+        ${gc ? `<span style="display:inline-block;margin-left:6px;color:#6b7280;font-size:11px">· ${gc}</span>` : ''}
       </div>`;
     }
   }
@@ -160,10 +167,11 @@ function buildApprovedExcel(courses: Curso[]): Buffer {
     'Modalidad': String(c._modalidad ?? ''),
     'Asignatura': String(c.Asignatura ?? ''),
     'Estado': String(c.Estado ?? ''),
-    'Gestor': String(c['Gestor asignado'] ?? c['Gestor responsable '] ?? c['Gestor responsable'] ?? ''),
+    'Gestor': String(c['Gestor responsable'] ?? c['Gestor responsable '] ?? c['Gestor asignado'] ?? ''),
     'DI responsable': String(c['DI responsable'] ?? ''),
     'Fecha inicio revisión DI': String(c['Fecha inicio revisión DI'] ?? ''),
     'Fecha fin revisión DI': String(c['Fecha fin revisión DI'] ?? ''),
+    'Fecha revalidación DI': String(c['Fecha revalidación de DI'] ?? ''),
     'Proyecto': String(c.Proyecto ?? ''),
     'Semestre': String(c.Semestre ?? ''),
     'Prioridad': String(c.Prioridad ?? c.PRIORIDAD ?? ''),
