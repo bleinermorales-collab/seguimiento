@@ -8,10 +8,11 @@ function hasGoogleCredentials(): boolean {
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_ID || '1oGq9zDPgw1wCcdeb419d-9hr6I_R4aVOtUwtRk_1zvI';
 
+// Maps nivel key → actual Google Sheets tab name (may differ in accents/spelling)
 const SHEET_MAP: Record<string, string> = {
   Pregrado: 'Pregrado',
   Especializaciones: 'Especializaciones',
-  'Maestrías': 'Maestrías',
+  'Maestrías': 'Maestrias',   // GS tab has no accent
   Doctorado: 'Doctorado',
 };
 
@@ -370,7 +371,7 @@ export async function readAllCourses(): Promise<Record<string, unknown>[]> {
       for (const row of data) {
         if (row['Asignatura']) all.push({ ...row, _nivel: nivel });
       }
-    } catch { /* skip missing sheets */ }
+    } catch (err) { console.error(`[sheets] Error leyendo nivel "${nivel}":`, (err as Error).message?.slice(0, 120)); }
   }
   return all;
 }
