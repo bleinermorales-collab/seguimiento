@@ -8,15 +8,44 @@ function hasGoogleCredentials(): boolean {
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_ID || '1oGq9zDPgw1wCcdeb419d-9hr6I_R4aVOtUwtRk_1zvI';
 
-// Maps nivel key → actual Google Sheets tab name (may differ in accents/spelling)
-const SHEET_MAP: Record<string, string> = {
-  Pregrado: 'Pregrado',
-  Especializaciones: 'Especializaciones',
-  'Maestrías': 'Maestrias',   // GS tab has no accent
-  Doctorado: 'Doctorado',
-};
-
 const NIVELES = ['Pregrado', 'Especializaciones', 'Maestrías', 'Doctorado'];
+
+// Cached list of real Google Sheets tab names (refreshed every 10 min)
+let _tabCache: string[] | null = null;
+let _tabCacheAt = 0;
+
+async function getTabNames(): Promise<string[]> {
+  if (_tabCache && Date.now() - _tabCacheAt < 600_000) return _tabCache;
+  try {
+    const sheets = getSheetsClient();
+    const res = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID, fields: 'sheets.properties.title' });
+    _tabCache = (res.data.sheets ?? []).map(s => s.properties?.title ?? '').filter(Boolean);
+    _tabCacheAt = Date.now();
+    console.log('[sheets] Pestañas GS:', _tabCache.join(' | '));
+    return _tabCache;
+  } catch {
+    return [];
+  }
+}
+
+function normTab(s: string): string {
+  return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+async function resolveTab(nivel: string): Promise<string> {
+  const tabs = await getTabNames();
+  if (!tabs.length) return nivel;
+  // 1. Exact match
+  if (tabs.includes(nivel)) return nivel;
+  // 2. Accent-insensitive match
+  const n = normTab(nivel);
+  const found = tabs.find(t => normTab(t) === n)
+    // 3. Singular/plural: "Maestrías" ↔ "Maestría"
+    ?? tabs.find(t => normTab(t) === n.replace(/s$/, ''))
+    ?? tabs.find(t => normTab(t) + 's' === n);
+  if (found) { console.log(`[sheets] "${nivel}" → "${found}"`); return found; }
+  return nivel;
+}
 
 const GESTORES = [
   'Samir Palencia Gerónimo', 'Hillary Ojeda Durango', 'Karina Muñoz Sierra',
@@ -111,7 +140,7 @@ function findColIdxFrom(headers: string[], colName: string, fromIdx: number): nu
 // ── READ: Google Sheets when available, else local Excel ─────
 export async function readSheet(nivel: string): Promise<Record<string, unknown>[]> {
   if (!hasGoogleCredentials()) return excel.readSheet(nivel);
-  const sheetName = SHEET_MAP[nivel] || nivel;
+  const sheetName = await resolveTab(nivel);
   const sheets = getSheetsClient();
 
   const res = await sheets.spreadsheets.values.get({
@@ -227,7 +256,7 @@ async function updateGoogleSheet(
     Object.entries(updatesIn).filter(([k]) => k !== 'Link' && k !== 'Link DI')
   );
   if (Object.keys(updates).length === 0) return;
-  const sheetName = SHEET_MAP[nivel] || nivel;
+  const sheetName = await resolveTab(nivel);
   const sheets = getSheetsClient();
 
   const res = await sheets.spreadsheets.values.get({
@@ -335,7 +364,7 @@ export async function appendCourse(nivel: string, fields: Record<string, string 
 }
 
 async function appendToGoogleSheet(nivel: string, fields: Record<string, string | number>): Promise<void> {
-  const sheetName = SHEET_MAP[nivel] || nivel;
+  const sheetName = await resolveTab(nivel);
   const sheets = getSheetsClient();
 
   const headerRes = await sheets.spreadsheets.values.get({
