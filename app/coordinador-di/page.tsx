@@ -151,12 +151,17 @@ export default function CoordinadorDIPage() {
   const isDevuelto = (c: Curso) => {
     const estado = String(c.Estado ?? '').trim();
     if (estado === 'Aprobado DI' || estado === 'Aprobado') return false;
+    if (!diActual(c)) return false;
     const estadoCurso = String(c['Estado curso'] ?? '').trim();
     const revalidacion = String(c['Estado de la revalidación DI'] ?? '').trim();
     return estado === 'Corrección' || (estadoCurso === 'Corrección' && revalidacion === 'En revalidación');
   };
+  const isSinDICorreccion = (c: Curso) => String(c.Estado ?? '').trim() === 'Corrección' && !diActual(c);
   const enRevision = cursos.filter(isParaRevisar);
-  const porAsignar = sortByDate(applyFilters(enRevision.filter(c => !diActual(c))), c => parseDate(c['Fin Gestor']));
+  const porAsignar = sortByDate(applyFilters([
+    ...enRevision.filter(c => !diActual(c)),
+    ...cursos.filter(isSinDICorreccion),
+  ]), c => parseDate(c['Fin Gestor']));
   const asignados  = sortByDate(applyFilters(enRevision.filter(c => !!diActual(c))), c => parseDate(c['Fecha de asignación DI']));
   const devueltos  = sortByDate(applyFilters(cursos.filter(isDevuelto)), c => parseDate(c['Fecha fin revisión DI']));
   const aprobados  = sortByDate(applyFilters(cursos.filter(c => {
@@ -164,7 +169,7 @@ export default function CoordinadorDIPage() {
     return e === 'Aprobado DI' || e === 'Aprobado';
   })), c => parseDate(c['Fecha fin revisión DI']));
 
-  const porAsignarTotal = enRevision.filter(c => !diActual(c)).length;
+  const porAsignarTotal = enRevision.filter(c => !diActual(c)).length + cursos.filter(isSinDICorreccion).length;
   const asignadosTotal = enRevision.filter(c => !!diActual(c)).length;
   const devueltosTotal = cursos.filter(isDevuelto).length;
   const aprobadosTotal = cursos.filter(c => { const e = String(c.Estado ?? '').trim(); return e === 'Aprobado DI' || e === 'Aprobado'; }).length;
@@ -172,6 +177,7 @@ export default function CoordinadorDIPage() {
   const handleModalConfirm = async () => {
     if (!modal || !modal.di) return;
     const k = key(modal.curso);
+    const fromCorreccion = isSinDICorreccion(modal.curso);
     setSaving(k);
     try {
       const res = await fetch(api('/api/assign-di'), {
@@ -185,13 +191,20 @@ export default function CoordinadorDIPage() {
           link: modal.link,
           observaciones: modal.obs,
           nombreElectiva: String(modal.curso['Nombre electiva'] ?? '').trim() || undefined,
+          fromCorreccion,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       const todayStr = (() => { const d = new Date(); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; })();
       setCursos(prev => prev.map(c =>
-        key(c) === k ? { ...c, 'DI asignado': modal.di, 'Link DI': modal.link || c['Link DI'], 'Fecha de asignación DI': todayStr } : c
+        key(c) === k ? {
+          ...c,
+          'DI asignado': modal.di,
+          'Link DI': modal.link || c['Link DI'],
+          'Fecha de asignación DI': todayStr,
+          ...(fromCorreccion ? { Estado: 'En revisión' } : {}),
+        } : c
       ));
       const action = diActual(modal.curso) ? 'Reasignado' : 'Asignado';
       setMessages(m => [...m, { id: Date.now().toString(), type: 'success', text: `${action} "${modal.curso.Asignatura}" → ${modal.di}` }]);
@@ -470,6 +483,11 @@ export default function CoordinadorDIPage() {
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">{c.Asignatura}</p>
                               {nombreElectiva(c) && <p className="text-xs text-indigo-500 mt-0.5 truncate">{nombreElectiva(c)}</p>}
+                              {isSinDICorreccion(c) && (
+                                <span className="inline-block text-xs px-1.5 py-0.5 rounded-full font-medium bg-red-100 text-red-700 mt-0.5">
+                                  Corrección sin DI
+                                </span>
+                              )}
                               {linkGestor(c) && (
                                 <a href={linkGestor(c)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium mt-0.5" onClick={e => e.stopPropagation()}>
                                   <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
@@ -486,12 +504,14 @@ export default function CoordinadorDIPage() {
                               >
                                 Asignar
                               </button>
-                              <button
-                                onClick={() => setDevolverModal({ curso: c, obs: '' })}
-                                className="px-3 py-1.5 text-xs font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                              >
-                                Devolver
-                              </button>
+                              {!isSinDICorreccion(c) && (
+                                <button
+                                  onClick={() => setDevolverModal({ curso: c, obs: '' })}
+                                  className="px-3 py-1.5 text-xs font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                                >
+                                  Devolver
+                                </button>
+                              )}
                             </div>
                           </div>
                         );

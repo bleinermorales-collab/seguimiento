@@ -113,6 +113,14 @@ function getDI(c: Curso): string {
   return String(c['DI responsable'] ?? '').trim();
 }
 
+const MEANINGLESS_NE = new Set(['no aplica', 'n/a', 'na', '-', '--', 'no', 'ninguno', 'ninguna']);
+function electivaNombre(c: Curso): string {
+  const v = String(c['Nombre electiva'] ?? '').trim();
+  if (!v) return '';
+  const norm = v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  return MEANINGLESS_NE.has(norm) ? '' : v;
+}
+
 interface ProgramaStats {
   nivel: string; programa: string;
   total: number; sem1: number; sem2: number; sem3: number;
@@ -121,7 +129,7 @@ interface ProgramaStats {
 interface PersonaStats {
   nombre: string; total: number;
   sinIniciar: number; proceso: number; revision: number; correccion: number; aprobado: number;
-  cursos: { nivel: string; programa: string; asignatura: string; estado: string; estadoCat: EstadoCat; other: string }[];
+  cursos: { nivel: string; programa: string; asignatura: string; nombreElectiva: string; estado: string; estadoCat: EstadoCat; other: string }[];
 }
 
 // ── GET ───────────────────────────────────────────────────────────────────────
@@ -161,7 +169,7 @@ export async function GET() {
         if (!gestorMap.has(g)) gestorMap.set(g, { nombre: g, total: 0, sinIniciar: 0, proceso: 0, revision: 0, correccion: 0, aprobado: 0, cursos: [] });
         const gs = gestorMap.get(g)!;
         gs.total++; gs[cat]++;
-        gs.cursos.push({ nivel, programa, asignatura: String(c.Asignatura ?? '').trim(), estado: String(c.Estado ?? '').trim(), estadoCat: cat, other: getDI(c) });
+        gs.cursos.push({ nivel, programa, asignatura: String(c.Asignatura ?? '').trim(), nombreElectiva: electivaNombre(c), estado: String(c.Estado ?? '').trim(), estadoCat: cat, other: getDI(c) });
       }
 
       const di = normalizarNombre(getDI(c));
@@ -169,7 +177,7 @@ export async function GET() {
         if (!diMap.has(di)) diMap.set(di, { nombre: di, total: 0, sinIniciar: 0, proceso: 0, revision: 0, correccion: 0, aprobado: 0, cursos: [] });
         const ds = diMap.get(di)!;
         ds.total++; ds[cat]++;
-        ds.cursos.push({ nivel, programa, asignatura: String(c.Asignatura ?? '').trim(), estado: String(c.Estado ?? '').trim(), estadoCat: cat, other: g });
+        ds.cursos.push({ nivel, programa, asignatura: String(c.Asignatura ?? '').trim(), nombreElectiva: electivaNombre(c), estado: String(c.Estado ?? '').trim(), estadoCat: cat, other: g });
       }
     }
 
@@ -303,12 +311,13 @@ export async function GET() {
       ws.properties.defaultRowHeight = 20;
 
       const COLS = [
-        { header: 'Gestor',       width: 30 },
-        { header: 'Nivel',        width: 18 },
-        { header: 'Programa',     width: 44 },
-        { header: 'Asignatura',   width: 40 },
-        { header: 'Estado',       width: 14 },
-        { header: 'DI responsable', width: 30 },
+        { header: 'Gestor',           width: 30 },
+        { header: 'Nivel',            width: 18 },
+        { header: 'Programa',         width: 44 },
+        { header: 'Asignatura',       width: 40 },
+        { header: 'Nombre electiva',  width: 30 },
+        { header: 'Estado',           width: 14 },
+        { header: 'DI responsable',   width: 30 },
       ];
       ws.columns = COLS.map(c => ({ width: c.width }));
 
@@ -334,12 +343,12 @@ export async function GET() {
           return ni !== 0 ? ni : a.programa.localeCompare(b.programa, 'es');
         });
         for (const c of sorted) {
-          const row = ws.addRow([g.nombre, c.nivel, c.programa, c.asignatura, c.estado, c.other]);
+          const row = ws.addRow([g.nombre, c.nivel, c.programa, c.asignatura, c.nombreElectiva, c.estado, c.other]);
           row.height = 20;
           row.eachCell((cell, col) => applyDataCell(cell, rowIdx, col === 2));
           // Color Estado cell
           const ecol = ESTADO_COLORS[c.estadoCat];
-          const eCell = row.getCell(5);
+          const eCell = row.getCell(6);
           eCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: ecol.bg } };
           eCell.font = { bold: true, color: { argb: ecol.fg }, size: 9 };
           eCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -390,6 +399,7 @@ export async function GET() {
         { header: 'Nivel',                    width: 18 },
         { header: 'Programa',                 width: 44 },
         { header: 'Asignatura',               width: 40 },
+        { header: 'Nombre electiva',          width: 30 },
         { header: 'Estado',                   width: 14 },
         { header: 'Gestor',                   width: 30 },
         { header: 'DI responsable',           width: 30 },
@@ -429,6 +439,7 @@ export async function GET() {
           String(c._nivel ?? '').trim(),
           String(c._programa ?? '').trim(),
           String(c.Asignatura ?? '').trim(),
+          electivaNombre(c),
           String(c.Estado ?? '').trim(),
           getGestor(c),
           getDI(c),
@@ -438,9 +449,9 @@ export async function GET() {
           String(c['Fecha revalidación de DI'] ?? '').trim(),
         ]);
         row.height = 20;
-        row.eachCell((cell, col) => applyDataCell(cell, i, col === 1 || col >= 7));
+        row.eachCell((cell, col) => applyDataCell(cell, i, col === 1 || col >= 8));
         const ecol = ESTADO_COLORS_5[cat];
-        const eCell = row.getCell(4);
+        const eCell = row.getCell(5);
         eCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: ecol.bg } };
         eCell.font = { bold: true, color: { argb: ecol.fg }, size: 9 };
         eCell.alignment = { vertical: 'middle', horizontal: 'center' };

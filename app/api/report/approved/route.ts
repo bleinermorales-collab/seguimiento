@@ -58,8 +58,10 @@ function getGestor(c: Curso): string {
 function cursoline(c: Curso): string {
   const prog = String(c._programa ?? '').trim();
   const asig = String(c.Asignatura ?? '').trim();
+  const ne = electivaNombre(c);
   const g = getGestor(c);
-  return `${prog} - ${asig}${g ? ` [${g}]` : ''} (aprobado)`;
+  const asigStr = ne ? `${asig} (${ne})` : asig;
+  return `${prog} - ${asigStr}${g ? ` [${g}]` : ''} (aprobado)`;
 }
 
 function buildPlainText(grupos: Grupo[], fecha: Date): string {
@@ -160,12 +162,21 @@ function buildReportHtml(grupos: Grupo[], plainText: string, fecha: Date, totalA
 </html>`;
 }
 
+const MEANINGLESS_NE = new Set(['no aplica', 'n/a', 'na', '-', '--', 'no', 'ninguno', 'ninguna']);
+function electivaNombre(c: Curso): string {
+  const v = String(c['Nombre electiva'] ?? '').trim();
+  if (!v) return '';
+  const norm = v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  return MEANINGLESS_NE.has(norm) ? '' : v;
+}
+
 function buildApprovedExcel(courses: Curso[]): Buffer {
   const rows = courses.map(c => ({
     'Nivel': String(c._nivel ?? ''),
     'Programa': String(c._programa ?? ''),
     'Modalidad': String(c._modalidad ?? ''),
     'Asignatura': String(c.Asignatura ?? ''),
+    'Nombre electiva': electivaNombre(c),
     'Estado': String(c.Estado ?? ''),
     'Gestor': String(c['Gestor responsable'] ?? c['Gestor responsable '] ?? c['Gestor asignado'] ?? ''),
     'DI responsable': String(c['DI responsable'] ?? ''),

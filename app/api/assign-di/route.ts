@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { nivel, programa, curso, di, link, observaciones, nombreElectiva } = body as {
-      nivel: string; programa: string; curso: string; di: string; link?: string; observaciones?: string; nombreElectiva?: string;
+    const { nivel, programa, curso, di, link, observaciones, nombreElectiva, fromCorreccion } = body as {
+      nivel: string; programa: string; curso: string; di: string; link?: string; observaciones?: string; nombreElectiva?: string; fromCorreccion?: boolean;
     };
     if (!nivel || !curso || !di) return NextResponse.json({ error: 'Faltan campos' }, { status: 400 });
 
@@ -30,6 +30,9 @@ export async function POST(req: NextRequest) {
       'Fecha de asignación DI': today,
       'Estado de la asignación': 'Asignado',
     };
+    if (fromCorreccion) {
+      updates['Estado'] = 'En revisión';
+    }
 
     const ok = await updateCourse(nivel, curso, updates, programa, nombreElectiva || undefined);
     if (!ok) return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
