@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     if (!opcion) return NextResponse.json({ error: 'Estado no válido' }, { status: 400 });
 
     // Info del curso antes de actualizar (para saber gestor/DI asignado)
-    const courseInfo = await getCourseInfo(nivel, programa, curso);
+    const courseInfo = await getCourseInfo(nivel, programa, curso, nombreElectiva || undefined);
     const courseLinks = getCourseLinks(nivel, programa, curso, nombreElectiva || undefined);
     const gestorNombre = String(courseInfo?.['Gestor responsable'] ?? courseInfo?.['Gestor responsable '] ?? '').trim();
     const diNombre = String(courseInfo?.['DI responsable'] ?? courseInfo?.['DI asignado'] ?? courseInfo?.['DI Responsable'] ?? '').trim();

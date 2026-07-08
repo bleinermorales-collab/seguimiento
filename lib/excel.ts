@@ -163,13 +163,20 @@ export function getGestores(nivel: string): string[] {
   return Array.from(seen).filter(Boolean).sort();
 }
 
-export function getCourseInfo(nivel: string, programa: string, asignatura: string): Record<string, unknown> | null {
+export function getCourseInfo(nivel: string, programa: string, asignatura: string, nombreElectiva?: string): Record<string, unknown> | null {
   const data = readSheet(nivel);
+  const normNE = nombreElectiva ? normalizeColName(nombreElectiva) : null;
   return (
     data.find(
-      (r) =>
-        (r._programa as string)?.trim() === programa.trim() &&
-        String(r['Asignatura'] ?? '').trim() === asignatura.trim()
+      (r) => {
+        if ((r._programa as string)?.trim() !== programa.trim()) return false;
+        if (String(r['Asignatura'] ?? '').trim() !== asignatura.trim()) return false;
+        if (normNE) {
+          const rowNE = normalizeColName(String(r['Nombre electiva'] ?? ''));
+          if (rowNE !== normNE) return false;
+        }
+        return true;
+      }
     ) ?? null
   );
 }

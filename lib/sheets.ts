@@ -203,13 +203,19 @@ export async function getGestores(): Promise<string[]> {
   return GESTORES.sort();
 }
 
-export async function getCourseInfo(nivel: string, programa: string, asignatura: string): Promise<Record<string, unknown> | null> {
-  if (!hasGoogleCredentials()) return excel.getCourseInfo(nivel, programa, asignatura);
+export async function getCourseInfo(nivel: string, programa: string, asignatura: string, nombreElectiva?: string): Promise<Record<string, unknown> | null> {
+  if (!hasGoogleCredentials()) return excel.getCourseInfo(nivel, programa, asignatura, nombreElectiva);
   const data = await readSheet(nivel);
-  return data.find(r =>
-    (r._programa as string)?.trim() === programa.trim() &&
-    String(r['Asignatura'] ?? '').trim() === asignatura.trim()
-  ) ?? null;
+  const normNE = nombreElectiva ? nombreElectiva.trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() : null;
+  return data.find(r => {
+    if ((r._programa as string)?.trim() !== programa.trim()) return false;
+    if (String(r['Asignatura'] ?? '').trim() !== asignatura.trim()) return false;
+    if (normNE) {
+      const rowNE = String(r['Nombre electiva'] ?? '').trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+      if (rowNE !== normNE) return false;
+    }
+    return true;
+  }) ?? null;
 }
 
 // ── WRITE: always update local Excel + Google Sheets when available ──
