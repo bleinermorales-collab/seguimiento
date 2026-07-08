@@ -417,7 +417,7 @@ export default function DIPage() {
                       return (
                         <div className="flex items-center gap-2 shrink-0">
                           <button
-                            onClick={() => handleDirectAction(c, 'aprobado')}
+                            onClick={() => setPendingAction({ curso: c, actionId: 'aprobado', obs: '' })}
                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -459,7 +459,7 @@ export default function DIPage() {
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Corrección</span>
                         <button
-                          onClick={() => handleDirectAction(c, 'aprobado')}
+                          onClick={() => setPendingAction({ curso: c, actionId: 'aprobado', obs: '' })}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -500,12 +500,14 @@ export default function DIPage() {
             </p>
             <p className="text-xs text-gray-400 mb-4">{pendingAction.curso._nivel} · {pendingAction.curso._programa}</p>
             <div className="mb-5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Observaciones</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+                {pendingAction.actionId === 'devuelto' ? 'Observaciones / Correcciones *' : 'Comentarios (opcional)'}
+              </label>
               <ObservacionesEditor
                 value={pendingAction.obs}
                 onChange={val => setPendingAction(p => p ? { ...p, obs: val } : p)}
-                placeholder="Notas adicionales (opcional)..."
-                ringColor="focus:ring-violet-500"
+                placeholder={pendingAction.actionId === 'devuelto' ? 'Describe las correcciones requeridas...' : 'Comentarios sobre la aprobación...'}
+                ringColor={pendingAction.actionId === 'devuelto' ? 'focus:ring-orange-500' : 'focus:ring-green-500'}
               />
             </div>
             <div className="flex gap-2">
