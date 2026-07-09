@@ -523,59 +523,6 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
 
       {/* ── Distribución por nivel y estado (fila completa) ── */}
       <Card title="Distribución por nivel y estado">
-        {/* Leyenda */}
-        <div className="flex flex-wrap gap-4 mb-5 text-[11px]">
-          {[
-            { color: '#9ca3af', label: 'No categorizado' },
-            { color: '#374151', label: 'No iniciado' },
-            { color: '#f59e0b', label: 'En proceso' },
-            { color: '#3b82f6', label: 'Revisión' },
-            { color: '#16a34a', label: 'Aprobado' },
-            { color: '#7c3aed', label: 'Producido' },
-            { color: '#0891b2', label: 'Cargado' },
-          ].map(l => (
-            <div key={l.label} className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: l.color }} />
-              <span className="text-gray-600">{l.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Barras apiladas */}
-        {(() => {
-          const maxT = Math.max(...s.nivelStats.map(n => n.total), 1);
-          return (
-            <div className="space-y-2.5 mb-6">
-              {s.nivelStats.filter(n => n.total > 0).map(n => {
-                const segs = [
-                  { val: n.noCategorizado, color: '#9ca3af' },
-                  { val: n.noIniciado,     color: '#374151' },
-                  { val: n.enProceso,      color: '#f59e0b' },
-                  { val: n.revision,       color: '#3b82f6' },
-                  { val: n.aprobado,       color: '#16a34a' },
-                  { val: n.producido,      color: '#7c3aed' },
-                  { val: n.cargado,        color: '#0891b2' },
-                ];
-                return (
-                  <div key={n.nivel} className="flex items-center gap-3">
-                    <span className="text-[11px] text-gray-600 w-40 shrink-0">{n.nivel} ({n.total})</span>
-                    <div className="flex-1 flex h-7 rounded overflow-hidden">
-                      {segs.map((seg, si) => seg.val > 0 && (
-                        <div key={si}
-                          className="flex items-center justify-center text-white text-[10px] font-bold overflow-hidden transition-all"
-                          style={{ width: `${(seg.val / maxT) * 100}%`, backgroundColor: seg.color, minWidth: '2px' }}>
-                          {seg.val / n.total > 0.04 ? seg.val : ''}
-                        </div>
-                      ))}
-                    </div>
-                    <span className="text-[11px] font-bold text-gray-700 w-10 text-right shrink-0">{n.total}</span>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })()}
-
         {/* Tabla detallada */}
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
