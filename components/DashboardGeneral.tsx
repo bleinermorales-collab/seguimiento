@@ -464,7 +464,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           </div>
 
           {/* Donut */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center gap-4">
             <DonutChart segs={donutSegs} total={s.total} />
             <div className="space-y-1 text-[10px]">
               {[
