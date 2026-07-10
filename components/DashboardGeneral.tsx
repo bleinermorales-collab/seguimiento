@@ -363,20 +363,17 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
 
       // Metodología: por modalidad, desglosado por etapa del flujo
       metodologia: (() => {
-        const map: Record<string, { noIniciado: number; enProceso: number; enRevision: number; aprobado: number; producido: number; cargado: number }> = {};
+        const map: Record<string, { noIniciado: number; enTramite: number; producidoCargado: number }> = {};
         for (const c of courses) {
           const mod = String(c._modalidad ?? '—').trim() || '—';
-          if (!map[mod]) map[mod] = { noIniciado: 0, enProceso: 0, enRevision: 0, aprobado: 0, producido: 0, cargado: 0 };
+          if (!map[mod]) map[mod] = { noIniciado: 0, enTramite: 0, producidoCargado: 0 };
           const e = String(c.Estado ?? '').trim();
-          if (e === 'Cargado') map[mod].cargado++;
-          else if (e === 'Producido') map[mod].producido++;
-          else if (e === 'Aprobado DI') map[mod].aprobado++;
-          else if (isEnRevision(c)) map[mod].enRevision++;
-          else if (e === 'En proceso') map[mod].enProceso++;
+          if (e === 'Cargado' || e === 'Producido') map[mod].producidoCargado++;
+          else if (e === 'Aprobado DI' || e === 'En proceso' || isEnRevision(c)) map[mod].enTramite++;
           else map[mod].noIniciado++;
         }
         return Object.entries(map).sort(([a], [b]) => a.localeCompare(b))
-          .map(([mod, v]) => ({ mod, ...v, total: v.noIniciado + v.enProceso + v.enRevision + v.aprobado + v.producido + v.cargado }));
+          .map(([mod, v]) => ({ mod, ...v, total: v.noIniciado + v.enTramite + v.producidoCargado }));
       })(),
     };
   }, [courses]);
@@ -727,12 +724,9 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           const yScale = (v: number) => (v / maxTotal) * gH;
           const yTicks = [0, 0.25, 0.5, 0.75, 1].map(r => ({ v: Math.round(r * maxTotal), y: PAD.t + gH - r * gH }));
           const SEGS = [
-            { key: 'noIniciado' as const, color: '#dc2626', label: 'No iniciado' },
-            { key: 'enProceso'  as const, color: '#f59e0b', label: 'En proceso' },
-            { key: 'enRevision' as const, color: '#2563eb', label: 'En revisión' },
-            { key: 'aprobado'   as const, color: '#16a34a', label: 'Aprobado' },
-            { key: 'producido'  as const, color: '#9333ea', label: 'Producido' },
-            { key: 'cargado'    as const, color: '#0891b2', label: 'Cargado' },
+            { key: 'noIniciado'       as const, color: '#dc2626', label: 'No iniciado' },
+            { key: 'enTramite'        as const, color: '#2563eb', label: 'En proceso / revisión / aprobado' },
+            { key: 'producidoCargado' as const, color: '#0891b2', label: 'Producido / cargado' },
           ];
           return (
             <Card title="Metodología">
