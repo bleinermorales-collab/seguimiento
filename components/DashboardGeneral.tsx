@@ -620,32 +620,32 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
               <p className="text-[10px] text-gray-400">del total</p>
             </div>
           </div>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Estado de los prioritarios</p>
-          <div className="space-y-1.5">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Estado de los prioritarios</p>
+          <div className="space-y-3">
             {[
               { label: 'Aprobados',    val: s.prioAprobados,   color: '#16a34a' },
               { label: 'En revisión',  val: s.prioRevision,    color: '#2563eb' },
               { label: 'Corrección',   val: s.prioCorreccion,  color: '#ea580c' },
               { label: 'No iniciados', val: s.prioNoIniciados, color: '#dc2626' },
             ].map(row => (
-              <div key={row.label} className="flex items-center gap-2">
-                <span className="text-[11px] text-gray-500 w-24 shrink-0">{row.label}</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div key={row.label} className="flex items-center gap-3">
+                <span className="text-sm text-gray-600 w-28 shrink-0">{row.label}</span>
+                <div className="flex-1 h-3.5 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: s.prioAll > 0 ? `${row.val / s.prioAll * 100}%` : '0%', backgroundColor: row.color }} />
                 </div>
-                <span className="text-[11px] font-bold w-6 text-right" style={{ color: row.color }}>{row.val}</span>
-                <span className="text-[10px] text-gray-400 w-8">{s.prioAll > 0 ? Math.round(row.val / s.prioAll * 100) : 0}%</span>
+                <span className="text-base font-bold w-8 text-right" style={{ color: row.color }}>{row.val}</span>
+                <span className="text-xs text-gray-400 w-10">{s.prioAll > 0 ? Math.round(row.val / s.prioAll * 100) : 0}%</span>
               </div>
             ))}
           </div>
           {s.prioNoIniciados > 0 && (
-            <div className="mt-auto bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center justify-between gap-2">
-              <span className="text-[11px] text-red-600">
+            <div className="mt-auto bg-red-50 border border-red-200 rounded-lg px-4 py-4 flex items-center justify-between gap-3">
+              <span className="text-sm text-red-600">
                 {s.prioNoIniciados} prioritario{s.prioNoIniciados > 1 ? 's' : ''} sin iniciar — requieren atención inmediata
               </span>
               <button
                 onClick={() => setShowPrioModal(true)}
-                className="shrink-0 text-[11px] font-semibold text-red-700 bg-red-100 hover:bg-red-200 border border-red-300 rounded-md px-2.5 py-1 transition"
+                className="shrink-0 text-sm font-semibold text-red-700 bg-red-100 hover:bg-red-200 border border-red-300 rounded-md px-3.5 py-2 transition"
               >
                 Ver lista
               </button>
