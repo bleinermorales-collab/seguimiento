@@ -729,8 +729,8 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             { key: 'producidoCargado' as const, color: '#0891b2', label: 'Producido / cargado' },
           ];
           return (
-            <Card title="Metodología">
-              <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+            <Card title="Metodología" className="flex flex-col h-full">
+              <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full flex-1 min-h-0">
                 {yTicks.map(t => (
                   <g key={t.v}>
                     <line x1={PAD.l} x2={W - PAD.r} y1={t.y} y2={t.y} stroke="#f3f4f6" strokeWidth="1" />
