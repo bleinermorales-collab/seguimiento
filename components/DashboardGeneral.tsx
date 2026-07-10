@@ -198,6 +198,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
   const s = useMemo(() => {
     const total = courses.length;
     const aprobados = courses.filter(isAprobado).length;
+    const enProceso = courses.filter(c => String(c.Estado ?? '').trim() === 'En proceso').length;
     const enRevision = courses.filter(isEnRevision).length;
     const enCorreccion = courses.filter(c => String(c.Estado ?? '').trim() === 'Corrección').length;
     const noIniciados = courses.filter(isNoIniciado).length;
@@ -331,7 +332,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     const tasaDirecta = approvedCount > 0 ? Math.round((approvedDirect / approvedCount) * 100) : 0;
 
     return {
-      total, aprobados, enRevision, enCorreccion, noIniciados, producidos, cargados,
+      total, aprobados, enProceso, enRevision, enCorreccion, noIniciados, producidos, cargados,
       asignados, iniciados, conDI,
       tAsigIni: avg(tAsigIni).toFixed(1),
       tGestor: avg(tGestor).toFixed(1),
@@ -388,9 +389,10 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     <div className="bg-gray-50 rounded-2xl p-5 space-y-4">
 
       {/* ── KPIs ── */}
-      <div className="grid grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-4 lg:grid-cols-8 gap-3">
         <KpiCard label="Total cursos"   value={s.total}        color="#111827" />
         <KpiCard label="No iniciados"   value={s.noIniciados}  color="#dc2626" />
+        <KpiCard label="En proceso"     value={s.enProceso}    color="#f59e0b" />
         <KpiCard label="En revisión"    value={s.enRevision}   color="#2563eb" />
         <KpiCard label="En corrección"  value={s.enCorreccion} color="#ea580c" />
         <KpiCard label="Aprobados"      value={s.aprobados}    color="#16a34a" />
