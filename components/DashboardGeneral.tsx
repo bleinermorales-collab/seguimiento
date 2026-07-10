@@ -73,6 +73,11 @@ function isNoIniciado(c: CourseRow): boolean {
   return !e || e === 'No empezado' || e === 'Sin iniciar';
 }
 
+function isCompletado(c: CourseRow): boolean {
+  const e = String(c.Estado ?? '').trim();
+  return e === 'Aprobado DI' || e === 'Producido' || e === 'Cargado';
+}
+
 const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 const NIVELES = ['Pregrado', 'Especializaciones', 'Maestrías', 'Doctorado'];
 const NIVEL_SHORT: Record<string, string> = {
@@ -109,22 +114,6 @@ function DonutChart({ segs, total }: { segs: { color: string; value: number }[];
       <text x={cx} y={cy - 7} textAnchor="middle" fill="#111827" fontSize="20" fontWeight="bold">{total}</text>
       <text x={cx} y={cy + 10} textAnchor="middle" fill="#9ca3af" fontSize="9">cursos</text>
     </svg>
-  );
-}
-
-// ── Stacked progress bar ───────────────────────────────────────────────────────
-function StackedBar({ aprobado, enRevision, correccion, noIniciado, total }: {
-  aprobado: number; enRevision: number; correccion: number; noIniciado: number; total: number;
-}) {
-  if (total === 0) return <div className="h-3 bg-gray-100 rounded-full" />;
-  const pct = (v: number) => `${(v / total * 100).toFixed(1)}%`;
-  return (
-    <div className="h-3 rounded-full overflow-hidden flex">
-      <div style={{ width: pct(aprobado), backgroundColor: '#22c55e' }} />
-      <div style={{ width: pct(enRevision), backgroundColor: '#3b82f6' }} />
-      <div style={{ width: pct(correccion), backgroundColor: '#f97316' }} />
-      <div style={{ width: pct(noIniciado), backgroundColor: '#e5e7eb' }} />
-    </div>
   );
 }
 
@@ -195,6 +184,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
   const [avanceModal, setAvanceModal] = useState<null | 'pendiente' | 'proceso' | 'aprobado' | 'cargado'>(null);
   const [avanceNivel, setAvanceNivel] = useState('');
   const [avanceSearch, setAvanceSearch] = useState('');
+  const [nivelAvanceModal, setNivelAvanceModal] = useState<string | null>(null);
   const s = useMemo(() => {
     const total = courses.length;
     const aprobados = courses.filter(isAprobado).length;
@@ -298,6 +288,28 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       return { nivel: n, total, noCategorizado, noIniciado, enProceso, revision, aprobado, producido, cargado, enRevision, correccion };
     });
 
+    // Avance por nivel (consolidado) + desglose por programa
+    const nivelAvance = NIVELES.map(n => {
+      const nc = courses.filter(c => c._nivel === n);
+      const total = nc.length;
+      const completado = nc.filter(isCompletado).length;
+      const pct = total > 0 ? Math.round(completado / total * 100) : 0;
+
+      const programMap = new Map<string, { total: number; completado: number }>();
+      for (const c of nc) {
+        const prog = String(c._programa ?? '').trim() || 'Sin programa';
+        const entry = programMap.get(prog) ?? { total: 0, completado: 0 };
+        entry.total += 1;
+        if (isCompletado(c)) entry.completado += 1;
+        programMap.set(prog, entry);
+      }
+      const programas = Array.from(programMap.entries())
+        .map(([programa, v]) => ({ programa, total: v.total, completado: v.completado, pct: v.total > 0 ? Math.round(v.completado / v.total * 100) : 0 }))
+        .sort((a, b) => b.pct - a.pct);
+
+      return { nivel: n, total, completado, pct, programas };
+    });
+
     // Prioritarios
     const prioAll = courses.filter(isPriority);
     const prioAprobados = prioAll.filter(c => String(c.Estado ?? '').trim() === 'Aprobado DI').length;
@@ -344,6 +356,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       tTotal: avg(tTotal).toFixed(1),
       monthCounts, monthLabels, monthlyTrend, weeklyTrend,
       nivelStats,
+      nivelAvance,
       prioAll: prioAll.length, prioAprobados, prioRevision, prioCorreccion, prioNoIniciados, prioNoIniciadosList,
       prioByNivel,
       aprobadosSemana, aprobadosDia, tasaDirecta, enviadosSemana, enviadosDia,
@@ -681,21 +694,18 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           </div>
           <div className="mt-4">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Estado de avance por nivel (%)</p>
-            <div className="space-y-2">
-              {s.nivelStats.filter(n => n.total > 0).map(n => (
-                <div key={n.nivel} className="flex items-center gap-2">
-                  <span className="text-[10px] text-gray-500 w-20 shrink-0">{NIVEL_SHORT[n.nivel]}</span>
-                  <StackedBar aprobado={n.aprobado} enRevision={n.enRevision} correccion={n.correccion} noIniciado={n.noIniciado} total={n.total} />
-                </div>
+            <div className="grid grid-cols-2 gap-2">
+              {s.nivelAvance.map(n => (
+                <button
+                  key={n.nivel}
+                  onClick={() => setNivelAvanceModal(n.nivel)}
+                  className="text-left bg-gray-50 hover:bg-gray-100 transition rounded-lg p-3 border border-gray-100"
+                >
+                  <p className="text-[10px] font-semibold" style={{ color: NIVEL_COLORS[n.nivel] }}>{NIVEL_SHORT[n.nivel]}</p>
+                  <p className="text-xl font-bold mt-0.5" style={{ color: NIVEL_COLORS[n.nivel] }}>{n.pct}%</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{n.completado}/{n.total} completados</p>
+                </button>
               ))}
-              <div className="flex gap-3 mt-2 flex-wrap">
-                {[['#22c55e', 'Aprobado'], ['#3b82f6', 'En revisión'], ['#f97316', 'Corrección'], ['#e5e7eb', 'No iniciado']].map(([c, l]) => (
-                  <div key={l} className="flex items-center gap-1">
-                    <div className="w-2.5 h-2.5 rounded-sm border border-gray-200" style={{ backgroundColor: c }} />
-                    <span className="text-[9px] text-gray-400">{l}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </Card>
@@ -882,6 +892,55 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
               </div>
               <div className="px-6 py-3 border-t border-gray-100">
                 <button onClick={() => setAvanceModal(null)}
+                  className="w-full py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Modal: avance por nivel — desglose por programa */}
+      {nivelAvanceModal && (() => {
+        const n = s.nivelAvance.find(x => x.nivel === nivelAvanceModal);
+        if (!n) return null;
+        return (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50"
+            onClick={e => { if (e.target === e.currentTarget) setNivelAvanceModal(null); }}>
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Avance por programa — {NIVEL_SHORT[n.nivel]}</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">{n.completado}/{n.total} cursos completados · {n.pct}%</p>
+                </div>
+                <button onClick={() => setNivelAvanceModal(null)} className="text-gray-400 hover:text-gray-600 transition">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="overflow-y-auto flex-1 px-6 py-4">
+                {n.programas.length === 0
+                  ? <p className="text-xs text-gray-400 text-center py-8">Sin programas</p>
+                  : (
+                    <ul className="space-y-2.5">
+                      {n.programas.map(p => (
+                        <li key={p.programa} className="flex items-center gap-3">
+                          <span className="text-xs text-gray-700 flex-1">{p.programa}</span>
+                          <span className="text-[10px] text-gray-400 shrink-0">{p.completado}/{p.total}</span>
+                          <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden shrink-0">
+                            <div className="h-full rounded-full" style={{ width: `${p.pct}%`, backgroundColor: NIVEL_COLORS[n.nivel] }} />
+                          </div>
+                          <span className="text-xs font-bold w-10 text-right shrink-0" style={{ color: NIVEL_COLORS[n.nivel] }}>{p.pct}%</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                }
+              </div>
+              <div className="px-6 py-3 border-t border-gray-100">
+                <button onClick={() => setNivelAvanceModal(null)}
                   className="w-full py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                   Cerrar
                 </button>
