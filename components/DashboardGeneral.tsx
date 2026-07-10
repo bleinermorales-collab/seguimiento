@@ -400,8 +400,43 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
         <KpiCard label="Cargados"       value={s.cargados}     color="#0891b2" />
       </div>
 
-      {/* ── Row 2: Vista rápida | Aprobaciones ── */}
+      {/* ── Row 2: Avance general | Vista rápida | Aprobaciones ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Avance general */}
+        <Card title="Avance general">
+          <div className="grid grid-cols-2 gap-4">
+            {([
+              { key: 'pendiente', label: 'Pendiente',  desc: 'No iniciados',               pct: s.total > 0 ? Math.round(s.noIniciados / s.total * 100) : 0,                      color: '#dc2626', track: '#fee2e2', val: s.noIniciados },
+              { key: 'proceso',   label: 'En virtualización', desc: 'En proceso + en revisión',    pct: s.total > 0 ? Math.round((s.enProceso + s.enRevision) / s.total * 100) : 0,   color: '#2563eb', track: '#dbeafe', val: s.enProceso + s.enRevision },
+              { key: 'aprobado',  label: 'Aprobado',   desc: 'Aprobados + Producidos',      pct: s.total > 0 ? Math.round((s.aprobadosDI + s.producidos) / s.total * 100) : 0,        color: '#16a34a', track: '#dcfce7', val: s.aprobadosDI + s.producidos },
+              { key: 'cargado',   label: 'Cargado',    desc: 'Cargados al LMS',             pct: s.total > 0 ? Math.round(s.cargados / s.total * 100) : 0,                         color: '#0891b2', track: '#cffafe', val: s.cargados },
+            ] as { key: 'pendiente'|'proceso'|'aprobado'|'cargado'; label: string; desc: string; pct: number; color: string; track: string; val: number }[]).map(m => {
+              const r = 36, cx = 46, cy = 46;
+              const circ = 2 * Math.PI * r;
+              const dash = (m.pct / 100) * circ;
+              return (
+                <div key={m.key} className="flex flex-col items-center text-center gap-2">
+                  <svg width="92" height="92">
+                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={m.track} strokeWidth="8" />
+                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={m.color} strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={`${dash} ${circ}`}
+                      style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }} />
+                    <text x={cx} y={cy + 5} textAnchor="middle" fontSize="15" fontWeight="bold" fill={m.color}>{m.pct}%</text>
+                  </svg>
+                  <p className="text-xs font-bold text-gray-800 leading-tight">{m.label}</p>
+                  <p className="text-sm font-bold leading-none" style={{ color: m.color }}>{m.val.toLocaleString('es-CO')}</p>
+                  <p className="text-[10px] text-gray-400 leading-tight">{m.desc}</p>
+                  <button
+                    onClick={() => { setAvanceModal(m.key); setAvanceNivel(''); setAvanceSearch(''); }}
+                    className="text-[10px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition"
+                  >Ver lista</button>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
 
         {/* Vista rápida */}
         <Card title="Vista rápida">
@@ -484,41 +519,6 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
               <span className="text-[12px] font-bold text-gray-900">Ciclo total prom.</span>
               <span className="text-sm font-bold text-cyan-600">{s.tTotal} días</span>
             </div>
-          </div>
-        </Card>
-
-        {/* Avance general */}
-        <Card title="Avance general">
-          <div className="grid grid-cols-2 gap-4">
-            {([
-              { key: 'pendiente', label: 'Pendiente',  desc: 'No iniciados',               pct: s.total > 0 ? Math.round(s.noIniciados / s.total * 100) : 0,                      color: '#dc2626', track: '#fee2e2', val: s.noIniciados },
-              { key: 'proceso',   label: 'En virtualización', desc: 'En proceso + en revisión',    pct: s.total > 0 ? Math.round((s.enProceso + s.enRevision) / s.total * 100) : 0,   color: '#2563eb', track: '#dbeafe', val: s.enProceso + s.enRevision },
-              { key: 'aprobado',  label: 'Aprobado',   desc: 'Aprobados + Producidos',      pct: s.total > 0 ? Math.round((s.aprobadosDI + s.producidos) / s.total * 100) : 0,        color: '#16a34a', track: '#dcfce7', val: s.aprobadosDI + s.producidos },
-              { key: 'cargado',   label: 'Cargado',    desc: 'Cargados al LMS',             pct: s.total > 0 ? Math.round(s.cargados / s.total * 100) : 0,                         color: '#0891b2', track: '#cffafe', val: s.cargados },
-            ] as { key: 'pendiente'|'proceso'|'aprobado'|'cargado'; label: string; desc: string; pct: number; color: string; track: string; val: number }[]).map(m => {
-              const r = 36, cx = 46, cy = 46;
-              const circ = 2 * Math.PI * r;
-              const dash = (m.pct / 100) * circ;
-              return (
-                <div key={m.key} className="flex flex-col items-center text-center gap-2">
-                  <svg width="92" height="92">
-                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={m.track} strokeWidth="8" />
-                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={m.color} strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeDasharray={`${dash} ${circ}`}
-                      style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }} />
-                    <text x={cx} y={cy + 5} textAnchor="middle" fontSize="15" fontWeight="bold" fill={m.color}>{m.pct}%</text>
-                  </svg>
-                  <p className="text-xs font-bold text-gray-800 leading-tight">{m.label}</p>
-                  <p className="text-sm font-bold leading-none" style={{ color: m.color }}>{m.val.toLocaleString('es-CO')}</p>
-                  <p className="text-[10px] text-gray-400 leading-tight">{m.desc}</p>
-                  <button
-                    onClick={() => { setAvanceModal(m.key); setAvanceNivel(''); setAvanceSearch(''); }}
-                    className="text-[10px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition"
-                  >Ver lista</button>
-                </div>
-              );
-            })}
           </div>
         </Card>
       </div>
