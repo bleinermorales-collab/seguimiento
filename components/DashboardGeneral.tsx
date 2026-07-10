@@ -299,9 +299,9 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
 
     // Prioritarios
     const prioAll = courses.filter(isPriority);
-    const prioAprobados = prioAll.filter(isAprobado).length;
+    const prioAprobados = prioAll.filter(c => String(c.Estado ?? '').trim() === 'Aprobado DI').length;
     const prioRevision = prioAll.filter(isEnRevision).length;
-    const prioCorreccion = prioAll.filter(c => String(c.Estado ?? '').trim() === 'Corrección').length;
+    const prioCorreccion = prioAll.filter(c => String(c['Estado curso'] ?? '').trim() === 'Corrección').length;
     const prioNoIniciadosList = prioAll.filter(isNoIniciado);
     const prioNoIniciados = prioNoIniciadosList.length;
 
