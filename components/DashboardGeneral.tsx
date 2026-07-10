@@ -492,7 +492,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           <div className="grid grid-cols-2 gap-4">
             {([
               { key: 'pendiente', label: 'Pendiente',  desc: 'No iniciados',               pct: s.total > 0 ? Math.round(s.noIniciados / s.total * 100) : 0,                      color: '#dc2626', track: '#fee2e2', val: s.noIniciados },
-              { key: 'proceso',   label: 'En proceso', desc: 'En revisión + corrección',    pct: s.total > 0 ? Math.round((s.enRevision + s.enCorreccion) / s.total * 100) : 0,   color: '#2563eb', track: '#dbeafe', val: s.enRevision + s.enCorreccion },
+              { key: 'proceso',   label: 'En virtualización', desc: 'En proceso + en revisión',    pct: s.total > 0 ? Math.round((s.enProceso + s.enRevision) / s.total * 100) : 0,   color: '#2563eb', track: '#dbeafe', val: s.enProceso + s.enRevision },
               { key: 'aprobado',  label: 'Aprobado',   desc: 'Aprobados + Producidos',      pct: s.total > 0 ? Math.round((s.aprobados + s.producidos) / s.total * 100) : 0,        color: '#16a34a', track: '#dcfce7', val: s.aprobados + s.producidos },
               { key: 'cargado',   label: 'Cargado',    desc: 'Cargados al LMS',             pct: s.total > 0 ? Math.round(s.cargados / s.total * 100) : 0,                         color: '#0891b2', track: '#cffafe', val: s.cargados },
             ] as { key: 'pendiente'|'proceso'|'aprobado'|'cargado'; label: string; desc: string; pct: number; color: string; track: string; val: number }[]).map(m => {
@@ -775,7 +775,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       {avanceModal && (() => {
         const MODAL_TITLES: Record<string, string> = {
           pendiente: 'Cursos pendientes de iniciar',
-          proceso:   'Cursos en proceso (revisión + corrección)',
+          proceso:   'Cursos en virtualización (en proceso + en revisión)',
           aprobado:  'Cursos aprobados y producidos',
           cargado:   'Cursos cargados',
         };
@@ -784,7 +784,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
           const e = String(c.Estado ?? '').trim();
           const match =
             avanceModal === 'pendiente' ? isNoIniciado(c) :
-            avanceModal === 'proceso'   ? (isEnRevision(c) || e === 'Corrección') :
+            avanceModal === 'proceso'   ? (e === 'En proceso' || isEnRevision(c)) :
             avanceModal === 'aprobado'  ? (isAprobado(c) || e === 'Producido') :
             e === 'Cargado';
           if (!match) return false;
