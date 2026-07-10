@@ -205,6 +205,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     const noIniciados = courses.filter(isNoIniciado).length;
     const producidos = courses.filter(c => String(c.Estado ?? '').trim() === 'Producido').length;
     const cargados = courses.filter(c => String(c.Estado ?? '').trim() === 'Cargado').length;
+    const devueltosCorreccion = courses.filter(c => String(c['Estado curso'] ?? '').trim() === 'Corrección').length;
 
     // Pipeline
     const asignados = courses.filter(c => !!getGestor(c)).length;
@@ -333,7 +334,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
     const tasaDirecta = approvedCount > 0 ? Math.round((approvedDirect / approvedCount) * 100) : 0;
 
     return {
-      total, aprobados, aprobadosDI, enProceso, enRevision, enCorreccion, noIniciados, producidos, cargados,
+      total, aprobados, aprobadosDI, enProceso, enRevision, enCorreccion, noIniciados, producidos, cargados, devueltosCorreccion,
       asignados, iniciados, conDI,
       tAsigIni: avg(tAsigIni).toFixed(1),
       tGestor: avg(tGestor).toFixed(1),
@@ -520,6 +521,24 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
               <span className="text-sm font-bold text-cyan-600">{s.tTotal} días</span>
             </div>
           </div>
+
+          {/* Tasa de corrección */}
+          {(() => {
+            const base = s.aprobadosDI + s.producidos + s.cargados;
+            const pct = base > 0 ? Math.round(s.devueltosCorreccion / base * 100) : 0;
+            return (
+              <div className="bg-gray-50 rounded-lg p-3 mt-4 border border-gray-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-gray-500 leading-tight">Cursos devueltos a corrección</p>
+                  <p className="text-[10px] text-gray-400 leading-tight">sobre Aprobados + Producidos + Cargados</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-orange-600 leading-none">{s.devueltosCorreccion}</p>
+                  <p className="text-[11px] font-bold text-orange-500 mt-0.5">{pct}%</p>
+                </div>
+              </div>
+            );
+          })()}
         </Card>
       </div>
 
