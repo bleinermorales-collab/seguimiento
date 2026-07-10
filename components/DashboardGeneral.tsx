@@ -131,7 +131,7 @@ function StackedBar({ aprobado, enRevision, correccion, noIniciado, total }: {
 // ── KPI card ──────────────────────────────────────────────────────────────────
 function KpiCard({ label, value, color }: { label: string; value: number | string; color: string }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 px-4 py-3 flex flex-col gap-0.5 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 px-4 py-3 flex flex-col items-center text-center gap-0.5 shadow-sm">
       <p className="text-[11px] text-gray-500 font-medium leading-tight">{label}</p>
       <p className="text-2xl font-bold leading-none" style={{ color }}>{value}</p>
     </div>
