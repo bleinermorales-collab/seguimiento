@@ -20,6 +20,7 @@ interface CourseRow {
   'Fin Gestor'?: string;
   'Fecha inicio revisión DI'?: string;
   'Fecha fin revisión DI'?: string;
+  'Estado de la revalidación DI'?: string;
   Prioridad?: string;
   PRIORIDAD?: string;
   Semestre?: string | number;
@@ -353,7 +354,12 @@ export default function AdminPage() {
                 { label: 'Cargados', value: filtered.filter(c => String(c.Estado ?? '').trim() === 'Cargado').length, color: 'text-purple-600' },
                 { label: 'En proceso', value: filtered.filter(c => c.Estado === 'En proceso').length, color: 'text-blue-600' },
                 { label: 'En revisión', value: filtered.filter(c => c.Estado === 'En revisión').length, color: 'text-yellow-600' },
-                { label: 'Corrección', value: filtered.filter(c => c.Estado === 'Corrección').length, color: 'text-red-600' },
+                { label: 'Corrección', value: filtered.filter(c => {
+                  const ec = String(c['Estado curso'] ?? '').trim();
+                  const e = String(c.Estado ?? '').trim();
+                  const rev = String(c['Estado de la revalidación DI'] ?? '').trim();
+                  return ec === 'Corrección' && e !== 'Aprobado DI' && rev !== 'Aprobado';
+                }).length, color: 'text-red-600' },
                 { label: 'Aprobados', value: filtered.filter(c => c.Estado === 'Aprobado DI' || c['Estado curso'] === 'Aprobado').length, color: 'text-green-600' },
               ].map(stat => (
                 <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-4">
