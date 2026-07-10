@@ -609,7 +609,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Cursos prioritarios */}
-        <Card title="Cursos prioritarios">
+        <Card title="Cursos prioritarios" className="flex flex-col h-full">
           <div className="flex items-center gap-4 mb-4">
             <div>
               <p className="text-4xl font-bold text-violet-600">{s.prioAll}</p>
@@ -639,7 +639,7 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             ))}
           </div>
           {s.prioNoIniciados > 0 && (
-            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+            <div className="mt-auto bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center justify-between gap-2">
               <span className="text-[11px] text-red-600">
                 {s.prioNoIniciados} prioritario{s.prioNoIniciados > 1 ? 's' : ''} sin iniciar — requieren atención inmediata
               </span>
