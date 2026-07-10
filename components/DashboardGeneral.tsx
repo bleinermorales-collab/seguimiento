@@ -377,12 +377,12 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
   ];
 
   const donutSegs = [
-    { color: '#22c55e', value: s.aprobados },
-    { color: '#3b82f6', value: s.enRevision },
-    { color: '#f97316', value: s.enCorreccion },
-    { color: '#ef4444', value: s.noIniciados },
-    { color: '#a855f7', value: s.producidos },
-    { color: '#06b6d4', value: s.cargados },
+    { color: '#dc2626', value: s.noIniciados },
+    { color: '#f59e0b', value: s.enProceso },
+    { color: '#2563eb', value: s.enRevision },
+    { color: '#16a34a', value: s.aprobadosDI },
+    { color: '#9333ea', value: s.producidos },
+    { color: '#0891b2', value: s.cargados },
   ];
 
   return (
@@ -433,12 +433,12 @@ export default function DashboardGeneral({ courses }: { courses: CourseRow[] }) 
             <DonutChart segs={donutSegs} total={s.total} />
             <div className="space-y-1 text-[10px]">
               {[
-                { color: '#22c55e', label: 'Aprobados',    val: s.aprobados },
-                { color: '#3b82f6', label: 'En revisión',  val: s.enRevision },
-                { color: '#f97316', label: 'Corrección',   val: s.enCorreccion },
-                { color: '#ef4444', label: 'No iniciados', val: s.noIniciados },
-                { color: '#a855f7', label: 'Producidos',   val: s.producidos },
-                { color: '#06b6d4', label: 'Cargados',     val: s.cargados },
+                { color: '#dc2626', label: 'No iniciados', val: s.noIniciados },
+                { color: '#f59e0b', label: 'En proceso',   val: s.enProceso },
+                { color: '#2563eb', label: 'En revisión',  val: s.enRevision },
+                { color: '#16a34a', label: 'Aprobados',    val: s.aprobadosDI },
+                { color: '#9333ea', label: 'Producidos',   val: s.producidos },
+                { color: '#0891b2', label: 'Cargados',     val: s.cargados },
               ].map(seg => (
                 <div key={seg.label} className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
