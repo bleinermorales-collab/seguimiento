@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
 import { api } from '@/lib/api';
 import DashboardGeneral from '@/components/DashboardGeneral';
+import DashboardCoordinadorGC from '@/components/DashboardCoordinadorGC';
 
 interface CourseRow {
   _nivel: string;
@@ -16,6 +17,8 @@ interface CourseRow {
   'Gestor responsable'?: string;
   'DI responsable'?: string;
   'Fecha de asignación'?: string;
+  'Fecha de solicitud PA'?: string;
+  'Fecha programada de producción'?: string;
   'Inicio Gestor'?: string;
   'Fin Gestor'?: string;
   'Fecha inicio revisión DI'?: string;
@@ -588,10 +591,11 @@ export default function AdminPage() {
             </div>
 
             {activeSubTab === 'general' && !loading && <DashboardGeneral courses={courses} />}
-            {activeSubTab === 'general' && loading && (
+            {activeSubTab === 'coordinador-gc' && !loading && <DashboardCoordinadorGC courses={courses} />}
+            {(activeSubTab === 'general' || activeSubTab === 'coordinador-gc') && loading && (
               <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-400 text-sm">Cargando datos...</div>
             )}
-            {activeSubTab !== 'general' && (
+            {activeSubTab !== 'general' && activeSubTab !== 'coordinador-gc' && (
               <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-500 text-sm">
                 Vista <span className="text-violet-600 font-semibold">{activeSubTab}</span> — próximamente
               </div>
