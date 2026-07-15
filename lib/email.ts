@@ -223,10 +223,10 @@ export function buildEmailHtml(params: {
       <div style="height:1px;background:#e8eaf0;margin:20px 0"></div>
       <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1300fd;padding-bottom:8px;border-bottom:2px solid #1300fd;margin-bottom:4px">Responsables</div>
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
+        ${params.gestor ? `<tr>
           <td style="padding:10px 0;${params.di ? 'border-bottom:1px solid #f0f2f5;' : ''}font-size:13px;color:#6b7280;font-weight:500">Gestor de contenido</td>
           <td style="padding:10px 0;${params.di ? 'border-bottom:1px solid #f0f2f5;' : ''}font-size:13px;color:#111827;font-weight:600;text-align:right">${params.gestor}</td>
-        </tr>
+        </tr>` : ''}
         ${params.di ? `<tr>
           <td style="padding:10px 0;font-size:13px;color:#6b7280;font-weight:500">Diseñador Instruccional</td>
           <td style="padding:10px 0;font-size:13px;color:#111827;font-weight:600;text-align:right">${params.di}</td>

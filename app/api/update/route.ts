@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
         subject: neClean ? `${opcion.label} — ${curso} (${neClean})` : `${opcion.label} — ${curso}`,
         html: buildEmailHtml({
           accion: opcion.label,
-          gestor: gestorNombre || responsable,
+          gestor: gestorNombre,
           di: diParaEmail || undefined,
           nivel,
           programa,
