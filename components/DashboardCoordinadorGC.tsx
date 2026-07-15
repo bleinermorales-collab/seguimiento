@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 export interface CourseRowGC {
   _nivel: string;
   _programa?: string;
+  _modalidad?: string;
   Asignatura?: string;
   Estado?: string;
   'Fecha de solicitud PA'?: string;
@@ -102,12 +103,27 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
     }
     const pctMesConcuerda = totalConAmbasFechas > 0 ? Math.round(matchMes / totalConAmbasFechas * 100) : 0;
 
-    const noEmpezadosPorNivel = NIVELES.map(n => ({
-      nivel: n,
-      count: courses.filter(c => c._nivel === n && isNoIniciado(c)).length,
-    }));
-    const totalNoEmpezados = noEmpezadosPorNivel.reduce((a, r) => a + r.count, 0);
-    const maxNoEmpezados = Math.max(...noEmpezadosPorNivel.map(r => r.count), 1);
+    const modalidades = Array.from(new Set(courses.map(c => String(c._modalidad ?? '').trim() || 'Sin modalidad'))).sort();
+
+    const noEmpezadosPorNivel = NIVELES.map(n => {
+      const nc = courses.filter(c => c._nivel === n);
+      const total = nc.length;
+      const faltan = nc.filter(isNoIniciado).length;
+      const pct = total > 0 ? Math.round(faltan / total * 100) : 0;
+      const porModalidad = modalidades
+        .map(mod => {
+          const mc = nc.filter(c => (String(c._modalidad ?? '').trim() || 'Sin modalidad') === mod);
+          const t = mc.length;
+          const f = mc.filter(isNoIniciado).length;
+          return { modalidad: mod, total: t, faltan: f, pct: t > 0 ? Math.round(f / t * 100) : 0 };
+        })
+        .filter(m => m.total > 0);
+      return { nivel: n, total, faltan, pct, porModalidad };
+    });
+
+    const totalGeneral = courses.length;
+    const faltanGeneral = courses.filter(isNoIniciado).length;
+    const pctGeneral = totalGeneral > 0 ? Math.round(faltanGeneral / totalGeneral * 100) : 0;
 
     return {
       diasPromedioSolicitudAsignacion,
@@ -116,8 +132,9 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
       pctMesConcuerda,
       totalConAmbasFechas,
       noEmpezadosPorNivel,
-      totalNoEmpezados,
-      maxNoEmpezados,
+      totalGeneral,
+      faltanGeneral,
+      pctGeneral,
     };
   }, [courses]);
 
@@ -143,21 +160,31 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
         </Card>
       </div>
 
-      <Card title="Cursos no empezados por nivel">
-        <div className="space-y-3">
-          {s.noEmpezadosPorNivel.map(r => (
-            <div key={r.nivel} className="flex items-center gap-3">
-              <span className="text-sm text-gray-600 w-32 shrink-0">{NIVEL_SHORT[r.nivel]}</span>
-              <div className="flex-1 h-3.5 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${(r.count / s.maxNoEmpezados) * 100}%`, backgroundColor: NIVEL_COLORS[r.nivel] }} />
+      <Card title="Cursos no empezados por nivel y modalidad">
+        <div className="space-y-4">
+          {s.noEmpezadosPorNivel.filter(r => r.total > 0).map(r => (
+            <div key={r.nivel}>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-sm font-bold" style={{ color: NIVEL_COLORS[r.nivel] }}>{NIVEL_SHORT[r.nivel]}</span>
+                <span className="text-sm font-bold text-gray-700">
+                  {r.faltan}/{r.total} <span className="text-gray-400 font-normal">({r.pct}%)</span>
+                </span>
               </div>
-              <span className="text-base font-bold w-10 text-right" style={{ color: NIVEL_COLORS[r.nivel] }}>{r.count}</span>
+              <div className="space-y-1 pl-3 border-l-2" style={{ borderColor: NIVEL_COLORS[r.nivel] + '40' }}>
+                {r.porModalidad.map(m => (
+                  <div key={m.modalidad} className="flex items-center justify-between text-xs text-gray-500">
+                    <span>{m.modalidad}</span>
+                    <span>{m.faltan}/{m.total} <span className="text-gray-400">({m.pct}%)</span></span>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
-          <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-            <span className="text-sm font-bold text-gray-800 w-32 shrink-0">Total</span>
-            <div className="flex-1" />
-            <span className="text-base font-bold w-10 text-right text-gray-800">{s.totalNoEmpezados}</span>
+          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+            <span className="text-sm font-bold text-gray-800">Total</span>
+            <span className="text-sm font-bold text-gray-800">
+              {s.faltanGeneral}/{s.totalGeneral} <span className="text-gray-400 font-normal">({s.pctGeneral}%)</span>
+            </span>
           </div>
         </div>
       </Card>
