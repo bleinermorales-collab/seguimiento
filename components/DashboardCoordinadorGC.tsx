@@ -320,27 +320,7 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
             ))}
           </div>
 
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-5 mb-3">Carga de asignación por gestor</p>
-          {s.cargaPorGestor.length === 0 ? (
-            <p className="text-xs text-gray-400">Sin gestores asignados</p>
-          ) : (
-            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-              {s.cargaPorGestor.map(g => (
-                <div key={g.gestor} className="flex items-center gap-2">
-                  <span className="text-xs text-gray-600 w-28 shrink-0 truncate" title={g.gestor}>{g.gestor}</span>
-                  <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full bg-indigo-500" style={{ width: `${(g.count / maxCargaGestor) * 100}%` }} />
-                  </div>
-                  <span className="text-xs font-bold text-indigo-600 w-6 text-right">{g.count}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card title="Anticipación de asignación">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-5 mb-3">Anticipación de asignación</p>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
             <div>
               <p className="text-3xl font-bold" style={{ color: s.promedioAnticipacion >= 0 ? '#16a34a' : '#dc2626' }}>
@@ -368,6 +348,26 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
               </div>
             ))}
           </div>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card title="Carga de asignación por gestor">
+          {s.cargaPorGestor.length === 0 ? (
+            <p className="text-xs text-gray-400">Sin gestores asignados</p>
+          ) : (
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {s.cargaPorGestor.map(g => (
+                <div key={g.gestor} className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600 w-28 shrink-0 truncate" title={g.gestor}>{g.gestor}</span>
+                  <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-indigo-500" style={{ width: `${(g.count / maxCargaGestor) * 100}%` }} />
+                  </div>
+                  <span className="text-xs font-bold text-indigo-600 w-6 text-right">{g.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
 
         <Card title="Cumplimiento fecha programada por mes">
