@@ -86,9 +86,9 @@ function mesAnioProgramado(raw: unknown): { mes: number; anio: number | null } |
   return d ? { mes: d.getMonth() + 1, anio: d.getFullYear() } : null;
 }
 
-function Card({ title, children }: { title?: string; children: React.ReactNode }) {
+function Card({ title, children, className = '' }: { title?: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+    <div className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm ${className}`}>
       {title && <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">{title}</p>}
       {children}
     </div>
@@ -235,17 +235,17 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card title="Cursos no empezados por nivel y modalidad">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Card title="Cursos no empezados por nivel y modalidad" className="flex flex-col h-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 auto-rows-fr">
             {s.noEmpezadosPorNivel.filter(r => r.total > 0).map(r => (
-              <div key={r.nivel} className="rounded-lg border-2 p-3" style={{ borderColor: NIVEL_COLORS[r.nivel] }}>
+              <div key={r.nivel} className="rounded-lg border-2 p-3 flex flex-col" style={{ borderColor: NIVEL_COLORS[r.nivel] }}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-bold" style={{ color: NIVEL_COLORS[r.nivel] }}>{NIVEL_SHORT[r.nivel]}</span>
                   <span className="text-sm font-bold text-gray-700">
                     {r.faltan}/{r.total} <span className="text-gray-400 font-normal">({r.pct}%)</span>
                   </span>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {r.porModalidad.map(m => (
                     <div key={m.modalidad} className="flex items-center justify-between text-xs text-gray-500">
                       <span>{m.modalidad}</span>
