@@ -239,28 +239,46 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 auto-rows-fr">
             {s.noEmpezadosPorNivel.filter(r => r.total > 0).map(r => (
               <div key={r.nivel} className="rounded-lg border-2 p-3 flex flex-col" style={{ borderColor: NIVEL_COLORS[r.nivel] }}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-bold" style={{ color: NIVEL_COLORS[r.nivel] }}>{NIVEL_SHORT[r.nivel]}</span>
-                  <span className="text-sm font-bold text-gray-700">
-                    {r.faltan}/{r.total} <span className="text-gray-400 font-normal">({r.pct}%)</span>
-                  </span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1 h-4 rounded-full" style={{ backgroundColor: NIVEL_COLORS[r.nivel] }} />
+                    <span className="text-sm font-bold" style={{ color: NIVEL_COLORS[r.nivel] }}>{NIVEL_SHORT[r.nivel]}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-gray-700">{r.faltan}/{r.total}</span>
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded-full border"
+                      style={{ color: NIVEL_COLORS[r.nivel], borderColor: NIVEL_COLORS[r.nivel], backgroundColor: NIVEL_COLORS[r.nivel] + '15' }}
+                    >
+                      {r.pct}%
+                    </span>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
+                  <div className="h-full rounded-full" style={{ width: `${r.pct}%`, backgroundColor: NIVEL_COLORS[r.nivel] }} />
+                </div>
+                <div className="space-y-2 flex-1 flex flex-col justify-center">
                   {r.porModalidad.map(m => (
-                    <div key={m.modalidad} className="flex items-center justify-between text-xs text-gray-500">
-                      <span>{m.modalidad}</span>
-                      <span>{m.faltan}/{m.total} <span className="text-gray-400">({m.pct}%)</span></span>
+                    <div key={m.modalidad} className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 w-16 shrink-0 truncate">{m.modalidad}</span>
+                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${m.pct}%`, backgroundColor: NIVEL_COLORS[r.nivel] }} />
+                      </div>
+                      <span className="text-xs text-gray-500 w-14 text-right shrink-0">{m.faltan}/{m.total}</span>
+                      <span className="text-xs font-bold w-9 text-right shrink-0" style={{ color: NIVEL_COLORS[r.nivel] }}>{m.pct}%</span>
                     </div>
                   ))}
                 </div>
               </div>
             ))}
           </div>
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-200">
-            <span className="text-sm font-bold text-gray-800">Total</span>
-            <span className="text-sm font-bold text-gray-800">
-              {s.faltanGeneral}/{s.totalGeneral} <span className="text-gray-400 font-normal">({s.pctGeneral}%)</span>
-            </span>
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 mt-3 flex items-center gap-3">
+            <span className="text-sm font-bold text-gray-700 shrink-0">Total general</span>
+            <div className="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-full rounded-full bg-red-600" style={{ width: `${s.pctGeneral}%` }} />
+            </div>
+            <span className="text-sm font-bold text-gray-700 shrink-0">{s.faltanGeneral}/{s.totalGeneral}</span>
+            <span className="text-xs font-bold text-red-600 shrink-0">{s.pctGeneral}%</span>
           </div>
         </Card>
 
