@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { normalizarNombre } from '@/lib/nombre-aliases';
 
 export interface CourseRowGC {
   _nivel: string;
@@ -55,7 +56,8 @@ function isNoIniciado(c: CourseRowGC): boolean {
 }
 
 function getGestor(c: CourseRowGC): string {
-  return (c['Gestor asignado'] || '').toString().trim();
+  const raw = (c['Gestor asignado'] || '').toString().trim();
+  return raw ? normalizarNombre(raw) : '';
 }
 
 // 'Fecha programada de producción' puede venir como "AAAA-MM" (input type=month) o como nombre de mes en español (dato histórico)
