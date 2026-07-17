@@ -189,18 +189,23 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
     const promedioAnticipacion = avg(anticipaciones);
 
     // Cumplimiento de fecha programada, por mes de producción programada (todos los años agrupados por mes)
+    // Cumple = asignado en el mes programado o antes (con anticipación). Atrasado = asignado después.
     const cumplimientoPorMes = MESES_CORTO.slice(0, numMonths).map((label, i) => {
       const m = i + 1;
-      let total = 0, enFecha = 0;
+      let total = 0, cumplen = 0;
       for (const c of courses) {
-        const mesProg = mesProgramado(c['Fecha programada de producción']);
-        if (mesProg !== m) continue;
+        const prog = mesAnioProgramado(c['Fecha programada de producción']);
+        if (!prog || prog.mes !== m) continue;
         const fechaAsig = parseDate(c['Fecha de asignación']);
         if (!fechaAsig) continue;
         total++;
-        if (fechaAsig.getMonth() + 1 === m) enFecha++;
+        const anioAsig = fechaAsig.getFullYear();
+        const mesAsig = fechaAsig.getMonth() + 1;
+        const anioProg = prog.anio ?? anioAsig;
+        const meses = (anioProg * 12 + prog.mes) - (anioAsig * 12 + mesAsig);
+        if (meses >= 0) cumplen++;
       }
-      const pct = total > 0 ? Math.round(enFecha / total * 100) : 0;
+      const pct = total > 0 ? Math.round(cumplen / total * 100) : 0;
       return { mes: label, pct, total };
     });
 
