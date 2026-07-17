@@ -8,8 +8,7 @@ export interface CourseRowGC {
   _modalidad?: string;
   Asignatura?: string;
   Estado?: string;
-  'Gestor responsable '?: string;
-  'Gestor responsable'?: string;
+  'Gestor asignado'?: string;
   'Fecha de solicitud PA'?: string;
   'Fecha de asignación'?: string;
   'Fecha programada de producción'?: string;
@@ -56,7 +55,7 @@ function isNoIniciado(c: CourseRowGC): boolean {
 }
 
 function getGestor(c: CourseRowGC): string {
-  return (c['Gestor responsable '] || c['Gestor responsable'] || '').toString().trim();
+  return (c['Gestor asignado'] || '').toString().trim();
 }
 
 // 'Fecha programada de producción' puede venir como "AAAA-MM" (input type=month) o como nombre de mes en español (dato histórico)
