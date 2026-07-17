@@ -238,7 +238,7 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
         <Card title="Cursos no empezados por nivel y modalidad" className="flex flex-col h-full">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 auto-rows-fr">
             {s.noEmpezadosPorNivel.filter(r => r.total > 0).map(r => (
-              <div key={r.nivel} className="rounded-lg border-2 p-3 flex flex-col" style={{ borderColor: NIVEL_COLORS[r.nivel] }}>
+              <div key={r.nivel} className="rounded-lg border-2 border-gray-200 p-3 flex flex-col">
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
                     <span className="w-1 h-4 rounded-full" style={{ backgroundColor: NIVEL_COLORS[r.nivel] }} />
