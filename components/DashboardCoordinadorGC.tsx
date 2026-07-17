@@ -8,6 +8,8 @@ export interface CourseRowGC {
   _modalidad?: string;
   Asignatura?: string;
   Estado?: string;
+  'Gestor responsable '?: string;
+  'Gestor responsable'?: string;
   'Fecha de solicitud PA'?: string;
   'Fecha de asignación'?: string;
   'Fecha programada de producción'?: string;
@@ -51,6 +53,10 @@ function avg(nums: number[]): number {
 function isNoIniciado(c: CourseRowGC): boolean {
   const e = String(c.Estado ?? '').trim();
   return !e || e === 'No empezado' || e === 'Sin iniciar';
+}
+
+function getGestor(c: CourseRowGC): string {
+  return (c['Gestor responsable '] || c['Gestor responsable'] || '').toString().trim();
 }
 
 // 'Fecha programada de producción' puede venir como "AAAA-MM" (input type=month) o como nombre de mes en español (dato histórico)
@@ -138,6 +144,17 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
     }
     const asignadosPorMesLabels = Array.from({ length: numMonths }, (_, m) => MESES_CORTO[m]);
 
+    // Carga de asignación por gestor (cursos actualmente asignados a cada uno)
+    const gestorMap = new Map<string, number>();
+    for (const c of courses) {
+      const g = getGestor(c);
+      if (!g) continue;
+      gestorMap.set(g, (gestorMap.get(g) ?? 0) + 1);
+    }
+    const cargaPorGestor = Array.from(gestorMap.entries())
+      .map(([gestor, count]) => ({ gestor, count }))
+      .sort((a, b) => b.count - a.count);
+
     return {
       diasPromedioSolicitudAsignacion,
       muestraDias: dias.length,
@@ -150,10 +167,12 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
       pctGeneral,
       asignadosPorMes,
       asignadosPorMesLabels,
+      cargaPorGestor,
     };
   }, [courses]);
 
   const maxAsignadosMes = Math.max(...s.asignadosPorMes, 1);
+  const maxCargaGestor = Math.max(...s.cargaPorGestor.map(g => g.count), 1);
 
   return (
     <div className="bg-gray-50 rounded-2xl p-5 space-y-4">
@@ -222,6 +241,23 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
               <span key={i} className="flex-1 text-center text-[9px] text-gray-400">{l}</span>
             ))}
           </div>
+
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-5 mb-3">Carga de asignación por gestor</p>
+          {s.cargaPorGestor.length === 0 ? (
+            <p className="text-xs text-gray-400">Sin gestores asignados</p>
+          ) : (
+            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+              {s.cargaPorGestor.map(g => (
+                <div key={g.gestor} className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600 w-28 shrink-0 truncate" title={g.gestor}>{g.gestor}</span>
+                  <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-indigo-500" style={{ width: `${(g.count / maxCargaGestor) * 100}%` }} />
+                  </div>
+                  <span className="text-xs font-bold text-indigo-600 w-6 text-right">{g.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
     </div>
