@@ -73,6 +73,19 @@ function mesProgramado(raw: unknown): number | null {
   return d ? d.getMonth() + 1 : null;
 }
 
+// Igual que mesProgramado pero además devuelve el año cuando el dato lo trae (formato AAAA-MM o fecha completa)
+function mesAnioProgramado(raw: unknown): { mes: number; anio: number | null } | null {
+  if (!raw) return null;
+  const str = String(raw).trim();
+  if (!str) return null;
+  const ym = str.match(/^(\d{4})-(\d{1,2})$/);
+  if (ym) return { mes: parseInt(ym[2], 10), anio: parseInt(ym[1], 10) };
+  const idx = MESES_ES.indexOf(str.toLowerCase());
+  if (idx !== -1) return { mes: idx + 1, anio: null };
+  const d = parseDate(str);
+  return d ? { mes: d.getMonth() + 1, anio: d.getFullYear() } : null;
+}
+
 function Card({ title, children }: { title?: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
@@ -156,6 +169,25 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
       .map(([gestor, count]) => ({ gestor, count }))
       .sort((a, b) => b.count - a.count);
 
+    // Anticipación de asignación: Fecha programada de producción vs Fecha de asignación
+    const anticipaciones: number[] = [];
+    let countAnticipado = 0, countEnMes = 0, countTarde = 0;
+    for (const c of courses) {
+      const prog = mesAnioProgramado(c['Fecha programada de producción']);
+      const fechaAsig = parseDate(c['Fecha de asignación']);
+      if (!prog || !fechaAsig) continue;
+      const anioAsig = fechaAsig.getFullYear();
+      const mesAsig = fechaAsig.getMonth() + 1;
+      const anioProg = prog.anio ?? anioAsig; // sin año en el dato (histórico) → se asume mismo año que la asignación
+      const meses = (anioProg * 12 + prog.mes) - (anioAsig * 12 + mesAsig);
+      anticipaciones.push(meses);
+      if (meses > 0) countAnticipado++;
+      else if (meses === 0) countEnMes++;
+      else countTarde++;
+    }
+    const totalAnticipacion = anticipaciones.length;
+    const promedioAnticipacion = avg(anticipaciones);
+
     return {
       diasPromedioSolicitudAsignacion,
       muestraDias: dias.length,
@@ -169,6 +201,11 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
       asignadosPorMes,
       asignadosPorMesLabels,
       cargaPorGestor,
+      totalAnticipacion,
+      promedioAnticipacion,
+      countAnticipado,
+      countEnMes,
+      countTarde,
     };
   }, [courses]);
 
@@ -261,6 +298,36 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
           )}
         </Card>
       </div>
+
+      <Card title="Anticipación de asignación">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+          <div>
+            <p className="text-3xl font-bold" style={{ color: s.promedioAnticipacion >= 0 ? '#16a34a' : '#dc2626' }}>
+              {s.promedioAnticipacion > 0 ? '+' : ''}{s.promedioAnticipacion.toFixed(1)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">meses de anticipación (prom.)</p>
+          </div>
+          <p className="text-[10px] text-gray-400 sm:max-w-xs">
+            Fecha programada de producción − Fecha de asignación · {s.totalAnticipacion} curso{s.totalAnticipacion !== 1 ? 's' : ''} comparados. Positivo = asignado antes del mes programado; negativo = asignado después.
+          </p>
+        </div>
+        <div className="space-y-2">
+          {[
+            { label: 'Asignado con anticipación', val: s.countAnticipado, color: '#16a34a' },
+            { label: 'Asignado en el mes programado', val: s.countEnMes, color: '#2563eb' },
+            { label: 'Asignado tarde', val: s.countTarde, color: '#dc2626' },
+          ].map(row => (
+            <div key={row.label} className="flex items-center gap-3">
+              <span className="text-sm text-gray-600 w-56 shrink-0">{row.label}</span>
+              <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: s.totalAnticipacion > 0 ? `${row.val / s.totalAnticipacion * 100}%` : '0%', backgroundColor: row.color }} />
+              </div>
+              <span className="text-sm font-bold w-8 text-right" style={{ color: row.color }}>{row.val}</span>
+              <span className="text-xs text-gray-400 w-10">{s.totalAnticipacion > 0 ? Math.round(row.val / s.totalAnticipacion * 100) : 0}%</span>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }
