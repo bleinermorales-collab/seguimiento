@@ -188,6 +188,22 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
     const totalAnticipacion = anticipaciones.length;
     const promedioAnticipacion = avg(anticipaciones);
 
+    // Cumplimiento de fecha programada, por mes de producción programada (todos los años agrupados por mes)
+    const cumplimientoPorMes = MESES_CORTO.slice(0, numMonths).map((label, i) => {
+      const m = i + 1;
+      let total = 0, enFecha = 0;
+      for (const c of courses) {
+        const mesProg = mesProgramado(c['Fecha programada de producción']);
+        if (mesProg !== m) continue;
+        const fechaAsig = parseDate(c['Fecha de asignación']);
+        if (!fechaAsig) continue;
+        total++;
+        if (fechaAsig.getMonth() + 1 === m) enFecha++;
+      }
+      const pct = total > 0 ? Math.round(enFecha / total * 100) : 0;
+      return { mes: label, pct, total };
+    });
+
     return {
       diasPromedioSolicitudAsignacion,
       muestraDias: dias.length,
@@ -205,6 +221,7 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
       promedioAnticipacion,
       countAnticipado,
       countEnMes,
+      cumplimientoPorMes,
       countTarde,
     };
   }, [courses]);
@@ -317,35 +334,65 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
         </Card>
       </div>
 
-      <Card title="Anticipación de asignación">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-          <div>
-            <p className="text-3xl font-bold" style={{ color: s.promedioAnticipacion >= 0 ? '#16a34a' : '#dc2626' }}>
-              {s.promedioAnticipacion > 0 ? '+' : ''}{s.promedioAnticipacion.toFixed(1)}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">meses de anticipación (prom.)</p>
-          </div>
-          <p className="text-[10px] text-gray-400 sm:max-w-xs">
-            Fecha programada de producción − Fecha de asignación · {s.totalAnticipacion} curso{s.totalAnticipacion !== 1 ? 's' : ''} comparados. Positivo = asignado antes del mes programado; negativo = asignado después.
-          </p>
-        </div>
-        <div className="space-y-2">
-          {[
-            { label: 'Asignado con anticipación', val: s.countAnticipado, color: '#16a34a' },
-            { label: 'Asignado en el mes programado', val: s.countEnMes, color: '#2563eb' },
-            { label: 'Asignado tarde', val: s.countTarde, color: '#dc2626' },
-          ].map(row => (
-            <div key={row.label} className="flex items-center gap-3">
-              <span className="text-sm text-gray-600 w-56 shrink-0">{row.label}</span>
-              <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: s.totalAnticipacion > 0 ? `${row.val / s.totalAnticipacion * 100}%` : '0%', backgroundColor: row.color }} />
-              </div>
-              <span className="text-sm font-bold w-8 text-right" style={{ color: row.color }}>{row.val}</span>
-              <span className="text-xs text-gray-400 w-10">{s.totalAnticipacion > 0 ? Math.round(row.val / s.totalAnticipacion * 100) : 0}%</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card title="Anticipación de asignación">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+            <div>
+              <p className="text-3xl font-bold" style={{ color: s.promedioAnticipacion >= 0 ? '#16a34a' : '#dc2626' }}>
+                {s.promedioAnticipacion > 0 ? '+' : ''}{s.promedioAnticipacion.toFixed(1)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">meses de anticipación (prom.)</p>
             </div>
-          ))}
-        </div>
-      </Card>
+            <p className="text-[10px] text-gray-400 sm:max-w-xs">
+              Fecha programada de producción − Fecha de asignación · {s.totalAnticipacion} curso{s.totalAnticipacion !== 1 ? 's' : ''} comparados. Positivo = asignado antes del mes programado; negativo = asignado después.
+            </p>
+          </div>
+          <div className="space-y-2">
+            {[
+              { label: 'Asignado con anticipación', val: s.countAnticipado, color: '#16a34a' },
+              { label: 'Asignado en el mes programado', val: s.countEnMes, color: '#2563eb' },
+              { label: 'Asignado tarde', val: s.countTarde, color: '#dc2626' },
+            ].map(row => (
+              <div key={row.label} className="flex items-center gap-3">
+                <span className="text-sm text-gray-600 w-56 shrink-0">{row.label}</span>
+                <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: s.totalAnticipacion > 0 ? `${row.val / s.totalAnticipacion * 100}%` : '0%', backgroundColor: row.color }} />
+                </div>
+                <span className="text-sm font-bold w-8 text-right" style={{ color: row.color }}>{row.val}</span>
+                <span className="text-xs text-gray-400 w-10">{s.totalAnticipacion > 0 ? Math.round(row.val / s.totalAnticipacion * 100) : 0}%</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card title="Cumplimiento fecha programada por mes">
+          <div className="space-y-3">
+            {s.cumplimientoPorMes.filter(r => r.total > 0).map(r => {
+              const color = r.pct >= 75 ? '#16a34a' : r.pct >= 50 ? '#f59e0b' : '#dc2626';
+              return (
+                <div key={r.mes}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-gray-700 font-medium">{r.mes}</span>
+                    <span className="text-sm font-bold" style={{ color }}>{r.pct}%</span>
+                  </div>
+                  <div className="h-2.5 rounded-full overflow-hidden flex bg-gray-100">
+                    <div className="h-full" style={{ width: `${r.pct}%`, backgroundColor: color }} />
+                    <div className="h-full" style={{ width: `${100 - r.pct}%`, backgroundColor: '#dc2626' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex gap-4 mt-4 flex-wrap">
+            {[['#16a34a', 'En fecha'], ['#f59e0b', 'Límite'], ['#dc2626', 'Atrasado']].map(([c, l]) => (
+              <div key={l} className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: c }} />
+                <span className="text-[11px] text-gray-500">{l}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
