@@ -199,16 +199,16 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card title="Cursos no empezados por nivel y modalidad">
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {s.noEmpezadosPorNivel.filter(r => r.total > 0).map(r => (
-              <div key={r.nivel}>
-                <div className="flex items-center justify-between mb-1.5">
+              <div key={r.nivel} className="rounded-lg border-2 p-3" style={{ borderColor: NIVEL_COLORS[r.nivel] }}>
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-bold" style={{ color: NIVEL_COLORS[r.nivel] }}>{NIVEL_SHORT[r.nivel]}</span>
                   <span className="text-sm font-bold text-gray-700">
                     {r.faltan}/{r.total} <span className="text-gray-400 font-normal">({r.pct}%)</span>
                   </span>
                 </div>
-                <div className="space-y-1 pl-3 border-l-2" style={{ borderColor: NIVEL_COLORS[r.nivel] + '40' }}>
+                <div className="space-y-1">
                   {r.porModalidad.map(m => (
                     <div key={m.modalidad} className="flex items-center justify-between text-xs text-gray-500">
                       <span>{m.modalidad}</span>
@@ -218,12 +218,12 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
                 </div>
               </div>
             ))}
-            <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-              <span className="text-sm font-bold text-gray-800">Total</span>
-              <span className="text-sm font-bold text-gray-800">
-                {s.faltanGeneral}/{s.totalGeneral} <span className="text-gray-400 font-normal">({s.pctGeneral}%)</span>
-              </span>
-            </div>
+          </div>
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-200">
+            <span className="text-sm font-bold text-gray-800">Total</span>
+            <span className="text-sm font-bold text-gray-800">
+              {s.faltanGeneral}/{s.totalGeneral} <span className="text-gray-400 font-normal">({s.pctGeneral}%)</span>
+            </span>
           </div>
         </Card>
 
