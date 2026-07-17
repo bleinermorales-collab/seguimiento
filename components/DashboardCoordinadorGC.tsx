@@ -21,6 +21,7 @@ const NIVEL_COLORS: Record<string, string> = {
   Pregrado: '#3b82f6', Especializaciones: '#8b5cf6', Maestrías: '#22c55e', Doctorado: '#f97316',
 };
 const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const MESES_CORTO = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 function parseDate(s: unknown): Date | null {
   if (!s) return null;
@@ -125,6 +126,18 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
     const faltanGeneral = courses.filter(isNoIniciado).length;
     const pctGeneral = totalGeneral > 0 ? Math.round(faltanGeneral / totalGeneral * 100) : 0;
 
+    // Cursos asignados por mes (año actual, según Fecha de asignación)
+    const currentYear = now.getFullYear();
+    const numMonths = now.getMonth() + 1;
+    const asignadosPorMes = Array(numMonths).fill(0);
+    for (const c of courses) {
+      const d = parseDate(c['Fecha de asignación']);
+      if (!d || d.getFullYear() !== currentYear) continue;
+      const m = d.getMonth();
+      if (m < numMonths) asignadosPorMes[m]++;
+    }
+    const asignadosPorMesLabels = Array.from({ length: numMonths }, (_, m) => MESES_CORTO[m]);
+
     return {
       diasPromedioSolicitudAsignacion,
       muestraDias: dias.length,
@@ -135,8 +148,12 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
       totalGeneral,
       faltanGeneral,
       pctGeneral,
+      asignadosPorMes,
+      asignadosPorMesLabels,
     };
   }, [courses]);
+
+  const maxAsignadosMes = Math.max(...s.asignadosPorMes, 1);
 
   return (
     <div className="bg-gray-50 rounded-2xl p-5 space-y-4">
@@ -160,34 +177,53 @@ export default function DashboardCoordinadorGC({ courses }: { courses: CourseRow
         </Card>
       </div>
 
-      <Card title="Cursos no empezados por nivel y modalidad">
-        <div className="space-y-4">
-          {s.noEmpezadosPorNivel.filter(r => r.total > 0).map(r => (
-            <div key={r.nivel}>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm font-bold" style={{ color: NIVEL_COLORS[r.nivel] }}>{NIVEL_SHORT[r.nivel]}</span>
-                <span className="text-sm font-bold text-gray-700">
-                  {r.faltan}/{r.total} <span className="text-gray-400 font-normal">({r.pct}%)</span>
-                </span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card title="Cursos no empezados por nivel y modalidad">
+          <div className="space-y-4">
+            {s.noEmpezadosPorNivel.filter(r => r.total > 0).map(r => (
+              <div key={r.nivel}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm font-bold" style={{ color: NIVEL_COLORS[r.nivel] }}>{NIVEL_SHORT[r.nivel]}</span>
+                  <span className="text-sm font-bold text-gray-700">
+                    {r.faltan}/{r.total} <span className="text-gray-400 font-normal">({r.pct}%)</span>
+                  </span>
+                </div>
+                <div className="space-y-1 pl-3 border-l-2" style={{ borderColor: NIVEL_COLORS[r.nivel] + '40' }}>
+                  {r.porModalidad.map(m => (
+                    <div key={m.modalidad} className="flex items-center justify-between text-xs text-gray-500">
+                      <span>{m.modalidad}</span>
+                      <span>{m.faltan}/{m.total} <span className="text-gray-400">({m.pct}%)</span></span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-1 pl-3 border-l-2" style={{ borderColor: NIVEL_COLORS[r.nivel] + '40' }}>
-                {r.porModalidad.map(m => (
-                  <div key={m.modalidad} className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{m.modalidad}</span>
-                    <span>{m.faltan}/{m.total} <span className="text-gray-400">({m.pct}%)</span></span>
-                  </div>
-                ))}
-              </div>
+            ))}
+            <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+              <span className="text-sm font-bold text-gray-800">Total</span>
+              <span className="text-sm font-bold text-gray-800">
+                {s.faltanGeneral}/{s.totalGeneral} <span className="text-gray-400 font-normal">({s.pctGeneral}%)</span>
+              </span>
             </div>
-          ))}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-            <span className="text-sm font-bold text-gray-800">Total</span>
-            <span className="text-sm font-bold text-gray-800">
-              {s.faltanGeneral}/{s.totalGeneral} <span className="text-gray-400 font-normal">({s.pctGeneral}%)</span>
-            </span>
           </div>
-        </div>
-      </Card>
+        </Card>
+
+        <Card title="Cursos asignados por mes">
+          <div className="flex items-end gap-1.5 h-28 mb-1">
+            {s.asignadosPorMes.map((v, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1">
+                <span className="text-[9px] text-gray-400">{v > 0 ? v : ''}</span>
+                <div className="w-full rounded-t"
+                  style={{ height: `${Math.max(3, (v / maxAsignadosMes) * 88)}px`, backgroundColor: i === s.asignadosPorMes.length - 1 ? '#0891b2' : '#6366f1' }} />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-1.5">
+            {s.asignadosPorMesLabels.map((l, i) => (
+              <span key={i} className="flex-1 text-center text-[9px] text-gray-400">{l}</span>
+            ))}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
